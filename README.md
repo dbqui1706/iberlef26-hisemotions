@@ -1,5 +1,5 @@
 
-<p align="center" style="overflow: hidden; height: 300px; width: 400px; position: relative;">
+<p align="center" style="overflow: hidden; height: 200px; width: 300px; position: relative;">
   <img align="center" src="hisemotions_2026.png" style="position: absolute; bottom: -50px; width: 100%;" />
 </p>
 
