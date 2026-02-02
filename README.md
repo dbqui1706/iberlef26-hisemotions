@@ -7,6 +7,7 @@
 
 - [Description of the Task](#description-of-the-task)
   - [Overview](#overview)
+  - [Relevance and Novelty](#relevance-and-novelty)
 - [References](#references)
 
 ## Description of the Task
@@ -19,6 +20,18 @@ While previous IberLEF shared tasks on sentiment and emotion analysis have focus
 To date, emotion detection TBED has demonstrated promising algorithmic performance, particularly for English-language data, mainly due to the availability of rich linguistic and lexical resources (Maks & Vossen, 2011; Valitutti et al., 2004). ED approaches have been successfully applied across a wide range of domains, including mental health analysis (Yang et al., 2023), customer behavior and marketing research (Wemmer et al., 2024), fake news detection (Zhang et al., 2023), and the humanities, where they support the analysis of emotional dimensions in literary texts (Santangelo, 2023). Within the fields of Digital Humanities and Computational Literary Studies, ED has attracted substantial attention (Kim & Klinger, 2019). It has been widely used to analyse emotions in historical plays (Yavuz, 2021; Schmidt et al., 2021), novels (Reagan et al., 2016), fairy tales (Mohammad, 2011), and political texts (Sprugnoli et al., 2016). Despite these advances, relatively few studies have examined the emotional dimension of other types of historical sources, such as historical correspondence (Gatti & Huesle, 2025; Turunen et al., 2022; Leemans et al., 2017; Mohammad, 2012). In particular, the existing literature lacks work assessing the broader applicability of emotion mining methods across specific linguistic and historical contexts, such as Spanish historical epistolary corpora.
 
 The motivation for this shared task is to address the challenge that semantic shift (Hu, Amaral, & Kübler, 2022; Montanelli & Periti, 2023; Montes, Manrique-Gómez, & Manrique, 2024) poses for emotion detection in historical texts, given that the lexicons in this domain often exhibit substantial deviations between historical and modern affective meanings. This challenge underscores the need for robust methods that can capture and detect the complexity of affective states expressed in historical correspondence. Another motivation for this shared task is to investigate how large language models (LLMs) and language models (LMs) can contribute to TBED in the domain of historical correspondence, given their promising performance on similar tasks in social media contexts (Plaza del Arco et al., 2020).
+
+### Relevance and Novelty
+
+The TBED is a well-established task in modern NLP; however, historical texts remain largely underexplored, particularly in non-English contexts. The relevance of applying TBED to historical domains arises from a hypothesis at the intersection of historical studies and Digital Humanities: namely, that the extraction and analysis of emotions can support the validation of historical arguments and contribute to the reconstruction of individual identities from the past (Eustace et al., 2012; Ehrlicher et al., 2019; Ortega-Sánchez et al., 2020; Nanetti, Pavlopoulos & Cambria, 2023). This shared task aims to advance automatic TBED in historical contexts, thereby significantly enhancing Digital Humanities research by enabling new forms of quantitative and qualitative historical analysis.
+
+This task aims to make the following contributions, which, to the best of our knowledge, are novel:
+
+1. An empirical study that involves LLMs and LMs for the TBED task in the domain of the Early Modern Spanish correspondence corpus.  
+2. The application and evaluation of diverse strategies and methods to adapt LLMs and LMs and improve their performance on this specific task.  
+3. Bridging Natural Language Processing and Digital Humanities by engaging participants from diverse academic backgrounds and areas of expertise.  
+
+
 
 ## References
 
