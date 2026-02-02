@@ -9,6 +9,8 @@
   - [Overview](#overview)
   - [Relevance and Novelty](#relevance-and-novelty)
   - [Challenges Involved](#challenges-involved)
+  - [Roadmap](#roadmap)
+  - [Methodological Aspects](#methodological-aspects)
 - [Dataset](#dataset)
   - [Annotation Procedure](#annotation-procedure)
 - [Baselines](#baselines)
@@ -46,6 +48,15 @@ This task aims to make the following contributions, which, to the best of our kn
 The studies cited above converge on several key challenges in historical texts related to TBED. These include: developing diachronic lexical representations; adapting computational methods for extracting information from historical language; and validating the extracted information using both human and automated approaches. Additionally, there is no established system for emotional annotation in historical epistolary corpora, nor a ground-truth standard for historical emotion lexicons and tags, since both the authors and their contemporaneous witnesses are long deceased, making it impossible to directly verify the true nature of the emotions expressed in the text. 
 
 Each of these challenges is critical to the contributions outlined in the previous section.
+
+### Roadmap
+
+The roadmap for HISEMOTIONS is conceived as a progressive and extensible evaluation framework. The 2026 edition will serve as a foundational task, establishing benchmarks for automatic emotion detection in Early Spanish correspondence from the 16th and 17th centuries and providing the first publicly available annotated resources for this domain. Building on this initial effort, future editions may expand the scope of the task to address more complex and fine-grained challenges, such as cross-century emotion modelling to study diachronic change, emotion cause extraction to identify events triggering emotional states, pragmatic emotion analysis to capture indirect and rhetorical expressions of affects, and cross-lingual comparisons with other Romance languages, fostering broader insights into historical emotion expression across related linguistic traditions.  
+
+
+### Methodological Aspects
+
+For the emotion annotation procedure, we adopt the SemEval 2025 binary multi-label emotion detection framework (Muhammad et al., 2025a), which captures the complexity of emotions expressed in text. Regarding emotion perception, we follow Muhammad et al. (2025b) and focus on how the annotator interprets the author’s emotions, using Ekman’s basic emotion framework (Ekman & Friesen, 1978; Ekman, 1992) as tagset—sadness, joy, surprise, anger, and fear, (excluding “disgust” since there are not enough examples of this category in our dataset)—and the category of “hope”, adopting the definition proposed by Feldman and Jazaieri (2024).
 
 ## Dataset
 
@@ -130,7 +141,7 @@ MOMENTUM CSIC (ref. MMT24–IEGPS–01) program within the framework of the Gene
 
 
 ## Relevant Issues
-Our shared task emphasises reproducibility and sustainability, with the long-term goal of creating a reference corpus for historical emotion analysis in Spanish. To ensure reproducibility, participants are required to provide access to their code through public repositories, which should be submitted alongside their papers. We also encourage interdisciplinary submissions and the formation of mixed teams, fostering collaboration across diverse academic backgrounds and areas of expertise.  
+Our shared task emphasises reproducibility and sustainability, with the long-term goal of creating a reference corpus for historical emotion analysis in Spanish. To ensure reproducibility, **participants are required to provide access to their code through public repositories**, which should be submitted alongside their papers. We also encourage interdisciplinary submissions and the formation of mixed teams, fostering collaboration across diverse academic backgrounds and areas of expertise.  
 
 
 
