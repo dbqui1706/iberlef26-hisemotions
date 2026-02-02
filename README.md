@@ -7,7 +7,7 @@
 ## Description of the Task
 
 ### Overview
-<p align="right">
+<p align="left">
   HISEMOTIONS 2026 proposes a shared task focused on Text-Based Emotion Detection (TBED) in Early Modern Spanish epistolary texts (16th-17th centuries). The task aims to foster the development and evaluation of NLP methods specifically adapted to historical Spanish language varieties, addressing the semantic and diachronic challenges of emotion and affective states expression in Early Modern Spanish correspondence.
   
 While previous IberLEF shared tasks on sentiment and emotion analysis have focused on contemporary Spanish and modern text genres such as social media, reviews, and news, leaving the linguistic, orthographic, and semantic characteristics of Early Modern Spanish largely unexplored. Consequently, the transferability of models and resources developed for modern Spanish to historical language varieties remains unclear, particularly in domains where affective expression follows distinct semantic, cultural, and linguistic conventions. This shared task addresses this gap by evaluating emotion detection methods on Spanish historical correspondence. It seeks to answer core research questions concerning the generalisation of modern Spanish models to Early Modern Spanish, the impact of semantic change on emotion classification, and the effectiveness of domain- and diachrony-aware adaptation strategies compared to direct transfer. In doing so, the task aims to advance emotion detection research in historical settings and to provide benchmarks for future work.
