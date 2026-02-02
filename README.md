@@ -9,6 +9,7 @@
   - [Overview](#overview)
   - [Relevance and Novelty](#relevance-and-novelty)
   - [Challenges Involved](#challenges-involved)
+- [Dataset](#dataset)
 - [References](#references)
 
 ## Description of the Task
@@ -37,6 +38,20 @@ This task aims to make the following contributions, which, to the best of our kn
 The studies cited above converge on several key challenges in historical texts related to TBED. These include: developing diachronic lexical representations; adapting computational methods for extracting information from historical language; and validating the extracted information using both human and automated approaches. Additionally, there is no established system for emotional annotation in historical epistolary corpora, nor a ground-truth standard for historical emotion lexicons and tags, since both the authors and their contemporaneous witnesses are long deceased, making it impossible to directly verify the true nature of the emotions expressed in the text. 
 
 Each of these challenges is critical to the contributions outlined in the previous section.
+
+## Dataset
+
+The corpus of Spanish correspondence (16th–17th c.), digitised and transcribed, is sourced from work by Vaamonde (2015), P. S. Post Scriptum corpus[^1]: http://teitok.clul.ul.pt/postscriptum/es/index.php?action=downloads. It includes private letters written in Portugal and Spain during the Early Modern period. The corpus consists mainly of previously unpublished correspondence from individuals of diverse social backgrounds, including men and women, adults and children, masters and servants, soldiers, artisans, clergy, and political actors. Characterised by an (almost) oral rhetoric and a focus on everyday concerns, these texts represent a register that has been largely understudied. Beyond assembling this unique collection, the P.S. Project provides the letters as a scholarly digital edition and an annotated corpus (PoS and syntactic dependencies), enabling systematic research on Early Modern epistolary practices. This shared task aims to use a selection of letters from the Spanish part of the corpus related to the 16th–17th centuries.  
+
+The dataset will be divided into training, development, and test splits. The training set will be released with gold emotion labels and used to train models. The development (validation) set, also released with gold labels, will support model tuning and error analysis. The test set will be released without labels and used for final evaluation. Submissions will be evaluated against hidden gold labels, and results will be displayed on a public leaderboard. Participants will submit their predictions in a standardised format, with a limited number of submissions per team to prevent overfitting. The official evaluation scripts and metrics will be made publicly available prior to the evaluation phase to ensure transparency and reproducibility.  
+
+Texts are segmented into emotion-bearing units (“fragments”), defined as contiguous spans of text corresponding to a clause or sentence that expresses a coherent affective state. Fragments derived from the same letter are kept together within a single split to prevent data leakage. Available metadata include letter-level information (when known) such as approximate date, place of origin, author identity, as provided by the Post Scriptum corpus.  
+
+**Dataset Size (Tentative)**  
+
+•	Training set: ~3000 annotated segments
+•	Validation set: ~ 500 segments
+•	Test set: ~1,000 segments
 
 
 ## References
