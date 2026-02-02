@@ -1,4 +1,4 @@
-# HISEMOTIONS 2026: Historical Text Based Emotion Detection in Early Modern Spanish Correspondence
+
 <h1 align="center">HISEMOTIONS 2026: Historical Text Based Emotion Detection in Early Modern Spanish Correspondence</h1>
 
 - [Description of the Task](#description-of-the-task)
