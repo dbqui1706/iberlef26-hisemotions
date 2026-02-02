@@ -81,10 +81,10 @@ Submissions will be evaluated against hidden gold labels, and results will be di
 ***Example***
 Below is a sample of the training data from the Early Modern Spanish Correspondence corpus. Each textual fragment may express multiple emotions—for example, fragment 1 expresses both joy and hope. Alternatively, a fragment may express no emotion at all—for instance, fragment 2, where all emotion values are 0, is considered neutral.
 
-| Column 1 | Column 2 | Column 3 | Column 4 | Column 5 | Column 6 | Column 7 | Column 8 |
+| fragment | text| anger | fear | joy | sadness | surprise | hope |
 |----------|----------|----------|----------|----------|----------|----------|----------|
-| Row 1 A  | Row 1 B  | Row 1 C  | Row 1 D  | Row 1 E  | Row 1 F  | Row 1 G  | Row 1 H  |
-| Row 2 A  | Row 2 B  | Row 2 C  | Row 2 D  | Row 2 E  | Row 2 F  | Row 2 G  | Row 2 H  |
+| 1  | Y de un mes a esta parte ha sido Dios servido que he sabidolo que digo.  | 0  | 0  | 0  | 0  | 0  | 0  |
+| 2  | He sentido tan grande alteración de placer que quisiere como pájaro volar a veros.  | 0  | 0  | 1  | 0  | 0  | 1  |
 
 
 
