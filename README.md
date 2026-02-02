@@ -8,7 +8,7 @@
  -->
 
 <p align="center" style="overflow: hidden; height: 300px; width: 400px; position: relative;">
-  <img align="center" src="assets/bridge-logo.png" style="position: absolute; bottom: -50px; width: 100%;" />
+  <img align="center" src="hisemotions_2026.png" style="position: absolute; bottom: -50px; width: 100%;" />
 </p>
 
 <h1 align="center">HISEMOTIONS 2026: Historical Text Based Emotion Detection in Early Modern Spanish Correspondence</h1>
