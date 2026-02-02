@@ -7,6 +7,7 @@
 
 - [Description of the Task](#description-of-the-task)
   - [Overview](#overview)
+- [References](#references)
 
 ## Description of the Task
 
@@ -71,13 +72,13 @@ Turunen, R., Taskinen, I., Uusitalo, L., & Kivimäki, V. (2022). Mining Emotions
 
 Vaamonde, G. (2015). P. S. Post Scriptum. Dos corpus diacrónicos de escritura cotidiana. *Procesamiento del Lenguaje Natural*, *55*, 57–64. [ISSN: 1135–5948].
 
-Valitutti, A., Strapparava, C., & Stock, O. (2004). Developing affective lexical resources. PsychNology Journal, 2(1), 61–83.
+Valitutti, A., Strapparava, C., & Stock, O. (2004). Developing affective lexical resources. *PsychNology Journal*, *2(1)*, 61–83.
 
-Wemmer, E., Labat, S., & Klinger, R. (2024). EmoProgress: Cumulated emotion progression analysis in dreams and customer service dialogues. In Proceedings of the 2024 Joint International Conference on Computational Linguistics, Language Resources and Evaluation (LREC-COLING 2024) (pp. 5660–5677).
+Wemmer, E., Labat, S., & Klinger, R. (2024). EmoProgress: Cumulated emotion progression analysis in dreams and customer service dialogues. In *Proceedings of the 2024 Joint International Conference on Computational Linguistics, Language Resources and Evaluation* (LREC-COLING 2024) (pp. 5660–5677).
 
-Yang, K., Ji, S., Zhang, T., Xie, Q., Kuang, Z., & Ananiadou, S. (2023). Towards interpretable mental health analysis with large language models. In Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing (EMNLP 2023).
+Yang, K., Ji, S., Zhang, T., Xie, Q., Kuang, Z., & Ananiadou, S. (2023). Towards interpretable mental health analysis with large language models. In *Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing* (EMNLP 2023) (pp.6056-6077). https://doi.org/10.18653/v1/2023.emnlp-main.370 
 
-Yavuz, M. C. (2021). Analyses of character emotions in dramatic works by using EmoLex unigrams. In Proceedings of the Seventh Italian Conference on Computational Linguistics (CLiC-it 2020). Bologna, Italy: Associazione Italiana di Linguistica Computazionale.
+Yavuz, M. C. (2021). Analyses of character emotions in dramatic works by using EmoLex unigrams. In *Proceedings of the Seventh Italian Conference on Computational Linguistics* (CLiC-it 2020) (pp.472–477). Bologna, Italy: Associazione Italiana di Linguistica Computazionale. https://aclanthology.org/2020.clicit-1.73/
 
-Zhang, Y., Su, X., Wu, J., Yang, J., Fan, H., & Zheng, X. (2023). Emoknow: Emotion- and knowledge-oriented model for COVID-19 fake news detection. In International Conference on Advanced Data Mining and Applications (pp. 352–367). Cham: Springer Nature Switzerland.
+Zhang, Y., Su, X., Wu, J., Yang, J., Fan, H., & Zheng, X. (2023). EmoKnow: emotion- and knowledge-oriented model for COVID-19 fake news detection. In X. Yang, H. Suhartanto, G. Wang, B. Wang, J. Jiang, B. Li, H. Zhu, & N. Cui (Eds.), *Advanced Data Mining and Applications: 19th International Conference*, ADMA 2023, Shenyang, China, August 21–23, 2023, proceedings, part I (pp. 352-367). (Lecture Notes in Computer Science; Vol. 14176). Springer, Springer Nature. https://doi.org/10.1007/978-3-031-46661-8_24
 
