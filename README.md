@@ -1,12 +1,4 @@
 
-<!-- 
-<p align="center" style="max-width: 80%; margin: 0 auto;">
-  <img src="hisemotions_2026.png" style="width: 100%; height: auto;" />
-    <h1 align="center"> </h1>
-</p>
-
- -->
-
 <p align="center" style="overflow: hidden; height: 300px; width: 400px; position: relative;">
   <img align="center" src="hisemotions_2026.png" style="position: absolute; bottom: -50px; width: 100%;" />
 </p>
