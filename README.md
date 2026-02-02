@@ -8,6 +8,7 @@
 - [Description of the Task](#description-of-the-task)
   - [Overview](#overview)
   - [Relevance and Novelty](#relevance-and-novelty)
+  - [Challenges Involved](#challenges-involved)
 - [References](#references)
 
 ## Description of the Task
@@ -31,6 +32,11 @@ This task aims to make the following contributions, which, to the best of our kn
 2. The application and evaluation of diverse strategies and methods to adapt LLMs and LMs and improve their performance on this specific task.  
 3. Bridging Natural Language Processing and Digital Humanities by engaging participants from diverse academic backgrounds and areas of expertise.  
 
+### Challenges Involved
+
+The studies cited above converge on several key challenges in historical texts related to TBED. These include: developing diachronic lexical representations; adapting computational methods for extracting information from historical language; and validating the extracted information using both human and automated approaches. Additionally, there is no established system for emotional annotation in historical epistolary corpora, nor a ground-truth standard for historical emotion lexicons and tags, since both the authors and their contemporaneous witnesses are long deceased, making it impossible to directly verify the true nature of the emotions expressed in the text. 
+
+Each of these challenges is critical to the contributions outlined in the previous section.
 
 
 ## References
