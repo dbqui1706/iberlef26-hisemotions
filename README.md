@@ -41,7 +41,7 @@ Each of these challenges is critical to the contributions outlined in the previo
 
 ## Dataset
 
-The corpus of Spanish correspondence (16th–17th c.), digitised and transcribed, is sourced from work by Vaamonde (2015), P. S. Post Scriptum corpus[^1]: http://teitok.clul.ul.pt/postscriptum/es/index.php?action=downloads. It includes private letters written in Portugal and Spain during the Early Modern period. The corpus consists mainly of previously unpublished correspondence from individuals of diverse social backgrounds, including men and women, adults and children, masters and servants, soldiers, artisans, clergy, and political actors. Characterised by an (almost) oral rhetoric and a focus on everyday concerns, these texts represent a register that has been largely understudied. Beyond assembling this unique collection, the P.S. Project provides the letters as a scholarly digital edition and an annotated corpus (PoS and syntactic dependencies), enabling systematic research on Early Modern epistolary practices. This shared task aims to use a selection of letters from the Spanish part of the corpus related to the 16th–17th centuries.  
+The corpus of Spanish correspondence (16th–17th c.), digitised and transcribed, is sourced from work by Vaamonde (2015), P. S. Post Scriptum corpus[^1]. It includes private letters written in Portugal and Spain during the Early Modern period. The corpus consists mainly of previously unpublished correspondence from individuals of diverse social backgrounds, including men and women, adults and children, masters and servants, soldiers, artisans, clergy, and political actors. Characterised by an (almost) oral rhetoric and a focus on everyday concerns, these texts represent a register that has been largely understudied. Beyond assembling this unique collection, the P.S. Project provides the letters as a scholarly digital edition and an annotated corpus (PoS and syntactic dependencies), enabling systematic research on Early Modern epistolary practices. This shared task aims to use a selection of letters from the Spanish part of the corpus related to the 16th–17th centuries.  
 
 The dataset will be divided into training, development, and test splits. The training set will be released with gold emotion labels and used to train models. The development (validation) set, also released with gold labels, will support model tuning and error analysis. The test set will be released without labels and used for final evaluation. Submissions will be evaluated against hidden gold labels, and results will be displayed on a public leaderboard. Participants will submit their predictions in a standardised format, with a limited number of submissions per team to prevent overfitting. The official evaluation scripts and metrics will be made publicly available prior to the evaluation phase to ensure transparency and reproducibility.  
 
@@ -53,6 +53,8 @@ Texts are segmented into emotion-bearing units (“fragments”), defined as con
 •	Validation set: ~ 500 segments
 •	Test set: ~1,000 segments
 
+
+[^1]:http://teitok.clul.ul.pt/postscriptum/es/index.php?action=downloads
 
 ## References
 
