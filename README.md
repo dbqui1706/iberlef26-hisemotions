@@ -13,8 +13,13 @@
   - [Annotation Procedure](#annotation-procedure)
 - [Baselines](#baselines)
 - [Task setup](#task-setup)
+- [Tentative Schedule](#tentative-schedule)
+- [Organisation Committee](#organisation-committee)
+- [Funding](#funding)
+- [Relevant Issues](#relevant-issues)
 - [References](#references)
 
+  
 ## Description of the Task
 
 ### Overview
@@ -66,10 +71,13 @@ The annotation process followed clearly defined guidelines. First, the annotatio
 
 ## Baselines
 
+We used LLMs to semi-automatically annotate selected letters in *Post Scriptum*. Two common prompting strategies were applied: zero-shot, which provides only the task description and instructions to the model, and few-shot, which supplements these instructions with annotated examples of the task. We selected two LLMs for our experiments—Llama-3.1-8B-Instruct (Meta, 2024) and Gemma-3-4B-it (Team, 2025)—given their extensive use in text and emotion classification tasks (Muhammad et al., 2025).  The following results were obtained, which serve as the baseline for the present task.  
 
 <p align="center" style="overflow: hidden; height: 200px; width: 300px; position: relative;">
   <img align="center" src="baselines/baselines.png" style="position: absolute; bottom: -50px; width: 80%;" />
-</p>
+</p>  
+
+
 
 ## Task Setup
 
@@ -87,10 +95,44 @@ Below is a sample of the training data from the Early Modern Spanish Corresponde
 | 2  | He sentido tan grande alteración de placer que quisiere como pájaro volar a veros.  | 0  | 0  | 1  | 0  | 0  | 1  |
 
 
-
- 
-
 **Evaluation measures**: Precision, Recall and F1-score will be measured. The macro-F1 score for multilabel classification ranks systems based on the predicted and gold labels. These metrics are widely adopted in text classification tasks, including multilabel classification, because they effectively address class imbalance and provide meaningful performance insights. Additionally, we will measure Precision to assess system performance at the item level.
+
+
+## Tentative Schedule
+•	Task announcement & website: January 23-February 5, 2026.  
+•	Release of development corpora: February 12, 2026.  
+•	Release of training corpora: March 12, 2026.  
+•	Release of test corpora and start of evaluation campaign: March 27, 2026.  
+•	End of evaluation campaign (deadline for runs submission): April 30, 2026.  
+•	Publication of official results: May 4, 2026.  
+•	Paper submission: May 20, 2026.  
+•	Final date for sending paper acceptance to task participants (Review notification): June 19, 2026.  
+•	Camera ready submissions due: July 1, 2026.  
+•	IberLEF Workshop: September 22, 2026.  
+
+
+## Organisation Committee
+
+**Dra. Albina Sarymsakova**, CSIC-IEGPS-XuGa: I am a postdoctoral researcher at the Padre Sarmiento Institute of Galician Studies, a branch of the Spanish National Research Council. My research sits at the intersection of linguistics, technology, and digital humanities. I specialise in the analysis and processing of both oral and written discourse, the development of linguistic technologies, and multimodal studies of orality. My work also encompasses speech synthesis, artificial intelligence for language processing, and their applications across historical and socio-cultural contexts. At my current institution, my primary research focuses on emotion mining and the annotation of historical corpora using AI-driven tools.  
+
+**Dra. Patricia Martín Rodilla**, CSIC-IEGPS-XuGa:  I am a Tenured Scientist at the Padre Sarmiento Institute of Galician Studies, a branch of the Spanish National Research Council and the leading researcher. My main interests lie at the intersection of language, software engineering, and the humanities. This includes information modelling and ontologies, information retrieval in the humanities, computational linguistics and corpus and social networks in the humanities. The research materialises in new working methodologies, techniques, metrics, algorithms, and resources (reference collections, corpora, linguistic-computational models), as well as in improvements to data analysis in narrative and humanities disciplines.  
+
+**Dr. Eugenio Martínez Cámara**, Universidad de Jaén: Eugenio Martínez Cámara holds a PhD and is a Computer Engineer from the University of Jaén, where he currently serves as Full Professor and Vice President of the Spanish Society for Natural Language Processing (SEPLN) and Secretary of the Centre of Advanced Studies in Information and Communication Technologies (CEATIC). His research focuses on Natural Language Processing, highlighting his contributions to opinion analysis in Spanish with recognised linguistic resources such as the COST corpus and the iSOL list, as well as recent work on federated learning, generative language models, and the DataBench collection for question answering over tabular data. With over 80 publications (30 in JCR journals, more than 50% in Q1) and an H-index of 20 (ResearchID), he has developed an extensive international career with postdoctoral stays at Technische Universität Darmstadt (Germany) and predoctoral stays at the University of Wolverhampton (United Kingdom), participating in European projects such as FIRST (FP7) and Information Consolidation (DFG). He has been Principal Investigator of 2 research projects, co-directed 11 contracts with Spanish companies, chaired the SEPLN International Congress 2020, organised multiple editions of the TASS workshop and IberLEF, and collaborates as a reviewer at international conferences (AAAI, ACL, EMNLP) and JCR journals, in addition to evaluating competitive calls for the AEI. Among his recognitions are the Extraordinary Doctorate Award from the University of Jaén, the best doctoral thesis in NLP by SEPLN, and the best article in Computer Speech and Language.  
+
+**Dr Alfonso Ureña López**, Universidad de Jaén: L. Alfonso Ureña López holds a PhD in Computer Science and is a Full Professor of Languages and Computer Systems at the University of Jaén, where he has been teaching since 1991 and currently directs the Isdefe/CETEDEX-UJA Chair and coordinates the doctoral programme in Information and Communication Technologies. His research focuses on Natural Language Processing, with contributions to opinion and sentiment analysis, information retrieval, question answering, text classification, dialogue systems, and multilingual and multimodal information access. He has over 250 publications in high-impact journals and prestigious conferences. He has directed the SINAI research group (Intelligent Systems for Information Access), 12 completed doctoral theses (5 ongoing), and a national thematic network with over 150 researchers. He has been Principal Investigator of 23 research projects (1 European, 15 national, 2 regional, 5 thematic networks), in addition to numerous business contracts. He has promoted the creation of the spin-off Yotta in the field of human language technologies. He has held prominent leadership positions as President of SEPLN (2007-2023), Secretary of SCIE (2009-2016), Head of the Computer Science Department at UJA (1997-2004), Deputy Director of the Higher Polytechnic School (2006-2012), and Director of CEATIC (2015-2024), currently serving as member of the Governing Board of COSCE, the Advisory Council of the Alliance for the New Language Economy of the Ministry, founder of CLARIAH-AND, and leader of the ALIA project in the National Artificial Intelligence Strategy 2024. Among his recognitions are 5 research six-year periods (CNEAI) and his work as an evaluator for ANEP/AEI since 2007, in addition to his participation in evaluation committees for the Ministry, the Juan de la Cierva programme, and agencies in the United Kingdom and the European Commission.  
+
+**Contact Person**  
+Dra. Albina Sarymsakova, CSIC-IEGPS-XuGa  
+E-mail: albina.s@iegps.csic.es  
+
+## Funding
+MOMENTUM CSIC (ref. MMT24–IEGPS–01) program within the framework of the Generación D initiative, promoted by Red.es—an entity attached to the Ministry for Digital Transformation and the Civil Service—to attract and retain talent through scholarships and training contracts funded by the Recovery, Transformation and Resilience Plan, supported by the European Union’s Next Generation funds. Likewise, the projects HEART-NLP-UJA (ref. PID2024-156263OB-C21) and VERITAS-H (AIA2025-163322-C64) are funded by MICIU/AEI/10.13039/501100011033 and by ERDF/EU. Additionally, the shared task is funded by the Ministerio para la Transformación Digital y de la Función Pública and the Plan de Recuperación, Transformación y Resiliencia - Funded by EU – NextGenerationEU within the framework of the project Desarrollo Modelos ALIA.  
+
+
+## Relevant Issues
+Our shared task emphasises reproducibility and sustainability, with the long-term goal of creating a reference corpus for historical emotion analysis in Spanish. To ensure reproducibility, participants are required to provide access to their code through public repositories, which should be submitted alongside their papers. We also encourage interdisciplinary submissions and the formation of mixed teams, fostering collaboration across diverse academic backgrounds and areas of expertise.  
+
+
 
 
 ## References
