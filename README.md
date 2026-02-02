@@ -1,7 +1,7 @@
 
 <!-- 
 <p align="center" style="max-width: 80%; margin: 0 auto;">
-  <img src="assets/bridging_emotion.png" style="width: 100%; height: auto;" />
+  <img src="hisemotions_2026.png" style="width: 100%; height: auto;" />
     <h1 align="center"> </h1>
 </p>
 
