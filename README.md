@@ -110,7 +110,7 @@ Below is a sample of the training data from the Early Modern Spanish Corresponde
 
 
 ## Tentative Schedule
-•	Task announcement & website: January 23-February 5, 2026.  
+•	Task announcement & website: January 23-**February 9**, 2026.  
 •	Release of development corpora: February 12, 2026.  
 •	Release of training corpora: March 12, 2026.  
 •	Release of test corpora and start of evaluation campaign: March 27, 2026.  
