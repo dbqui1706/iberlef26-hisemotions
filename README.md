@@ -1,0 +1,1 @@
+# HISEMOTIONS-2026-Historical-Text-Based-Emotion-Detection-in-Early-Modern-Spanish-Correspondence.
