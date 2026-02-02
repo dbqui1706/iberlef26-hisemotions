@@ -12,6 +12,7 @@
 - [Dataset](#dataset)
   - [Annotation Procedure](#annotation-procedure)
 - [Baselines](#baselines)
+- [Task setup](#task-setup)
 - [References](#references)
 
 ## Description of the Task
@@ -45,8 +46,7 @@ Each of these challenges is critical to the contributions outlined in the previo
 
 The corpus of Spanish correspondence (16th–17th c.), digitised and transcribed, is sourced from work by Vaamonde (2015), *P. S. Post Scriptum* corpus[^1]. It includes private letters written in Portugal and Spain during the Early Modern period. The corpus consists mainly of previously unpublished correspondence from individuals of diverse social backgrounds, including men and women, adults and children, masters and servants, soldiers, artisans, clergy, and political actors. Characterised by an (almost) oral rhetoric and a focus on everyday concerns, these texts represent a register that has been largely understudied. Beyond assembling this unique collection, the *P.S.* Project provides the letters as a scholarly digital edition and an annotated corpus (PoS and syntactic dependencies), enabling systematic research on Early Modern epistolary practices. This shared task aims to use a selection of letters from the Spanish part of the corpus related to the 16th–17th centuries.  
 
-The dataset will be divided into **training**, **development**, and **test** splits. The **training** set will be released with gold emotion labels and used to train models. The **development** (validation) set, also released with gold labels, will support model tuning and error analysis. The **test** set will be released without labels and used for final evaluation. Submissions will be evaluated against hidden gold labels, and results will be displayed on a public leaderboard. Participants will submit their predictions in a standardised format, with a limited number of submissions per team to prevent overfitting. The official evaluation scripts and metrics will be made publicly available prior to the evaluation phase to ensure transparency and reproducibility.  
-
+The dataset will be divided into **training**, **development**, and **test** splits. The **training** set will be released with gold emotion labels and used to train models. The **development** (validation) set, also released with gold labels, will support model tuning and error analysis. The **test** set will be released without labels and used for final evaluation. 
 Texts are segmented into emotion-bearing units (“**fragments**”), defined as contiguous spans of text corresponding to a clause or sentence that expresses a coherent affective state. **Fragments** derived from the same letter are kept together within a single split to prevent data leakage. Available metadata include letter-level information (when known) such as approximate date, place of origin, author identity, as provided by the *Post Scriptum* corpus.  
 
 **Dataset Size (Tentative)**  
@@ -65,6 +65,22 @@ The selected letters from the *Post Scriptum* corpus have been annotated using t
 The annotation process followed clearly defined guidelines. First, the annotation focused exclusively on emotions expressed by the letter authors themselves, excluding emotions attributed to third parties mentioned in the text. Second, priority was given to emotions expressed at the moment of writing, rather than emotions associated with past events merely reported in the narrative. Finally, utterances not conveying emotional content—such as formulas of courtesy and politeness, openings and closers of the letters—were left unannotated and assigned a value of 0, as they function as structural components of epistolary discourse rather than carriers of affect.  
 
 ## Baselines
+
+## Task Setup
+
+### Multi-label Emotion Detection
+Given a letter fragment, the task is to predict the perceived emotion(s) of the author. Specifically, for each textual fragment, participants should indicate whether each of the following emotions is present: joy, sadness, fear, anger, surprise, or hope. In other words, each fragment should be labeled as: joy (**1**) or no joy (**0**), sadness (1) or no sadness (0), fear (1) or no fear (0), anger (1) or no anger (0), surprise (1) or no surprise (0), and hope (1) or no hope (0).  
+
+Submissions will be evaluated against hidden gold labels, and results will be displayed on a public leaderboard. Participants will submit their predictions in a standardised format, with a limited number of submissions (**will be indicated further**) per team to prevent overfitting. The official evaluation scripts and metrics will be made publicly available prior to the evaluation phase to ensure transparency and reproducibility.  
+
+***Example***
+Below is a sample of the training data from the Early Modern Spanish Correspondence corpus. Each textual fragment may express multiple emotions—for example, fragment 1 expresses both joy and hope. Alternatively, a fragment may express no emotion at all—for instance, fragment 2, where all emotion values are 0, is considered neutral.
+
+
+ 
+
+**Evaluation measures**: Precision, Recall and F1-score will be measured. The macro-F1 score for multilabel classification ranks systems based on the predicted and gold labels. These metrics are widely adopted in text classification tasks, including multilabel classification, because they effectively address class imbalance and provide meaningful performance insights. Additionally, we will measure Precision to assess system performance at the item level.
+
 
 ## References
 
