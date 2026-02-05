@@ -25,6 +25,7 @@
 ## Description of the Task
 
 ### Overview
+<p align="justify">
   HISEMOTIONS 2026 proposes a shared task focused on Text-Based Emotion Detection (TBED) in Early Modern Spanish epistolary texts (16th-17th centuries). The task aims to foster the development and evaluation of NLP methods specifically adapted to historical Spanish language varieties, addressing the semantic and diachronic challenges of emotion and affective states expression in Early Modern Spanish correspondence.  
   
 Previous IberLEF shared tasks on sentiment and emotion analysis have focused on contemporary Spanish and modern genres (e.g., social media, reviews, news), leaving the linguistic and semantic features of Early Modern Spanish largely unexplored. As a result, the transferability of models and resources from modern to historical Spanish remains unclear, especially in domains with distinct affective conventions. This shared task addresses this gap by evaluating emotion detection in historical Spanish correspondence, investigating the generalisation of modern models, the impact of semantic change on classification, and the effectiveness of domain- and diachrony-aware adaptation strategies. It aims to advance historical emotion detection research and provide benchmarks for future work.
@@ -32,6 +33,7 @@ Previous IberLEF shared tasks on sentiment and emotion analysis have focused on 
 ED has been applied across domains including mental health (Yang et al., 2023), marketing (Wemmer et al., 2024), fake news detection (Zhang et al., 2023), and the humanities, where it supports the analysis of literary texts (Santangelo, 2023). In Digital Humanities and Computational Literary Studies, ED has been widely used to study historical plays (Yavuz, 2021; Schmidt et al., 2021), novels (Reagan et al., 2016), fairy tales (Mohammad, 2011), and political texts (Sprugnoli et al., 2016). Yet few studies examine emotions in other historical sources, such as correspondence (Gatti & Huesle, 2025; Turunen et al., 2022; Leemans et al., 2017; Mohammad, 2012), and broader applicability across linguistic and historical contexts, including Spanish epistolary corpora, remains underexplored.
 
 This shared task aims to address the challenge of semantic shift (Hu, Amaral, & Kübler, 2022; Montanelli & Periti, 2023; Montes, Manrique-Gómez, & Manrique, 2024), which causes substantial differences between historical and modern affective meanings, highlighting the need for robust methods to detect complex emotions in historical correspondence. It also investigates the potential of large language models (LLMs) and language models (LMs) for TBED in this domain, given their success in social media tasks (Plaza del Arco et al., 2020).
+</p>
 
 ### Relevance and Novelty
 
