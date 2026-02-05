@@ -67,9 +67,9 @@ Texts are segmented into emotion-bearing units (“**fragments**”), defined as
 
 **Dataset Size (Tentative)**  
 
-•	Training set: ~3000 annotated segments  
-•	Validation set: ~ 500 segments  
-•	Test set: ~1,000 segments  
+•	Training set: ~3000 annotated fragments  
+•	Validation set: ~ 500 fragments  
+•	Test set: ~1,000 fragments  
 
 
 [^1]:http://teitok.clul.ul.pt/postscriptum/es/index.php?action=downloads
