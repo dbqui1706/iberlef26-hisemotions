@@ -59,19 +59,20 @@ Each of these challenges is critical to the contributions outlined in the previo
 ### Methodological Aspects
 
 <div align="justify">
-  For the emotion annotation procedure, we adopt the SemEval 2025 binary multi-label emotion detection framework (Muhammad et al., 2025a), which captures the complexity of emotions expressed in text. Regarding emotion perception, we follow Muhammad et al. (2025b) and focus on how the annotator interprets the author’s emotions, using Ekman’s basic emotion framework (Ekman & Friesen, 1978; Ekman, 1992) as tagset—sadness, joy, surprise, anger, and fear, (excluding “disgust” since there are not enough examples of this category in our dataset)—and the category of “hope”, adopting the definition proposed by Feldman and Jazaieri (2024).
+  
+  For the emotion annotation procedure, we adopt the SemEval 2025 binary multi-label emotion detection framework (Muhammad et al., 2025a), which captures the complexity of emotions expressed in text. Regarding emotion perception, we follow Muhammad et al. (2025b) and focus on how the annotator interprets the author’s emotions, using Ekman’s basic emotion framework (Ekman & Friesen, 1978; Ekman, 1992) as tagset—*sadness*, *joy*, *surprise*, *anger*, and *fear*, (excluding “*disgust*” since there are not enough examples of this category in our dataset)—and the category of “*hope*”, adopting the definition proposed by Feldman and Jazaieri (2024).
 </div>
 
 ## Dataset
 
 <div align="justify">
   
-  The corpus of Spanish correspondence (16th–17th c.), digitised and transcribed, is sourced from work by Vaamonde (2015), *P. S. Post Scriptum* corpus[^1]. It includes private letters written in Portugal and Spain during the Early Modern period. The corpus consists mainly of previously unpublished correspondence from individuals of diverse social backgrounds, including men and women, adults and children, masters and servants, soldiers, artisans, clergy, and political actors. Characterised by an (almost) oral rhetoric and a focus on everyday concerns, these texts represent a register that has been largely understudied. Beyond assembling this unique collection, the *P.S.* Project provides the letters as a scholarly digital edition and an annotated corpus (PoS and syntactic dependencies), enabling systematic research on Early Modern epistolary practices. This shared task aims to use a selection of letters from the Spanish part of the corpus related to the 16th–17th centuries.
+  The corpus of Spanish correspondence (16th–17th c.), digitised and transcribed, is sourced from work by Vaamonde (2015), *P. S. Post Scriptum* corpus[^1]. It includes private letters written in Portugal and Spain during the Early Modern period. The corpus consists mainly of previously unpublished correspondence from individuals of diverse social backgrounds, including men and women, adults and children, masters and servants, soldiers, artisans, clergy, and political figures. Beyond assembling this unique collection, the *P.S.* Project provides the letters as a scholarly digital edition and an annotated corpus (PoS and syntactic dependencies), enabling systematic research on Early Modern epistolary practices. This shared task aims to use a selection of letters from the Spanish part of the corpus related to the 16th–17th centuries.
    </div>
 <br>
 <div align="justify">
   
-  The dataset will be divided into **training**, **development**, and **test** splits. The **training** set will be released with gold emotion labels and used to train models. The **development** (validation) set, also released with gold labels, will support model tuning and error analysis. The **test** set will be released without labels and used for final evaluation. 
+  The dataset will be divided into **training**, **development**, and **test** splits. The **training** set will be released with gold emotion labels and used to train models. The **development** (validation) set, also released with gold labels, will support, initial experiments and model tuning. The **test** set will be released without labels and used for final evaluation. 
 Texts are segmented into emotion-bearing units (“**fragments**”), defined as contiguous spans of text corresponding to a clause or sentence that expresses a coherent affective state. **Fragments** derived from the same letter are kept together within a single split to prevent data leakage. Available metadata include letter-level information (when known) such as approximate date, place of origin, author identity, as provided by the *Post Scriptum* corpus.
  </div>
   <br>
@@ -88,7 +89,7 @@ Texts are segmented into emotion-bearing units (“**fragments**”), defined as
 ### Annotation Procedure
 <div align="justify">
   
-The selected letters from the *Post Scriptum* corpus have been annotated using the aforementioned emotion tagset, which includes *sadness*, *joy*, *surprise*, *anger*, *fear*, and *hope*. The *disgust* category was excluded due to insufficient representative instances in the dataset. Annotation was carried out using a semi-automatic approach: initial labels were generated by baseline models (see the [Baselines](#baselines) subsection) and subsequently reviewed and corrected by two expert annotators, one a Spanish philologist and the other a computer scientist with expertise in NLP.  
+The selected letters from the *Post Scriptum* corpus have been annotated using the aforementioned emotion tagset, which includes *sadness*, *joy*, *surprise*, *anger*, *fear*, and *hope*. Annotation was carried out using a semi-automatic approach: initial labels were generated by baseline models (see the [Baselines](#baselines) subsection) and subsequently reviewed and corrected by two expert annotators, one a Spanish philologist and the other a computer scientist with expertise in NLP.  
 
 The annotation process followed clearly defined guidelines. First, the annotation focused exclusively on emotions expressed by the letter authors themselves, excluding emotions attributed to third parties mentioned in the text. Second, priority was given to emotions expressed at the moment of writing, rather than emotions associated with past events merely reported in the narrative. Finally, utterances not conveying emotional content—such as formulas of courtesy and politeness, openings and closers of the letters—were left unannotated and assigned a value of 0, as they function as structural components of epistolary discourse rather than carriers of affect.  
 </div> 
@@ -97,7 +98,7 @@ The annotation process followed clearly defined guidelines. First, the annotatio
 
 <div align="justify">
   
-We used LLMs to semi-automatically annotate selected letters in *Post Scriptum*. Two common prompting strategies were applied: zero-shot, which provides only the task description and instructions to the model, and few-shot, which supplements these instructions with annotated examples of the task. We selected two LLMs for our experiments—Llama-3.1-8B-Instruct (Meta, 2024) and Gemma-3-4B-it (Team, 2025)—given their extensive use in text and emotion classification tasks (Muhammad et al., 2025).  The following results were obtained, which serve as the baseline for the present task.  c
+We used LLMs to semi-automatically annotate selected letters in *Post Scriptum*. Two common prompting strategies were applied: zero-shot, which provides only the task description and instructions to the model, and few-shot, which supplements these instructions with annotated examples of the task. We selected two LLMs for our experiments—Llama-3.1-8B-Instruct (Meta, 2024) and Gemma-3-4B-it (Team, 2025)—given their extensive use in text and emotion classification tasks (Muhammad et al., 2025). The following results were obtained, which serve as the baseline for the present task.
 
 <p align="center" style="overflow: hidden; height: 200px; width: 300px; position: relative;">
   <img align="center" src="baselines/baselines.png" style="position: absolute; bottom: -50px; width: 80%;" />
@@ -110,12 +111,12 @@ We used LLMs to semi-automatically annotate selected letters in *Post Scriptum*.
 ### Multi-label Emotion Detection
 <div align="justify">
   
-Given a letter fragment, the task is to predict the perceived emotion(s) of the author. Specifically, for each textual fragment, participants should indicate whether each of the following emotions is present: joy, sadness, fear, anger, surprise, or hope. In other words, each fragment should be labeled as: joy (**1**) or no joy (**0**), sadness (1) or no sadness (0), fear (1) or no fear (0), anger (1) or no anger (0), surprise (1) or no surprise (0), and hope (1) or no hope (0).  
+Given a letter fragment, the task is to predict the perceived emotion(s) of the author. Specifically, for each textual fragment, participants should indicate whether each of the following emotions is present: **joy**, **sadness**, **fear**, **anger**, **surprise**, or **hope**. In other words, each fragment should be labeled as: joy (**1**) or no joy (**0**), sadness (1) or no sadness (0), fear (1) or no fear (0), anger (1) or no anger (0), surprise (1) or no surprise (0), and hope (1) or no hope (0).  
 
-Submissions will be evaluated against hidden gold labels, and results will be displayed on a public leaderboard. Participants will submit their predictions in a standardised format, with a limited number of submissions (**will be indicated further**) per team to prevent overfitting. The official evaluation scripts and metrics will be made publicly available prior to the evaluation phase to ensure transparency and reproducibility.  </div>
+Submissions will be evaluated against hidden gold labels, and results will be displayed on a public leaderboard. Participants will submit their predictions in a standardised format, with a limited number of submissions (**The submission details will be indicated further**) per team to prevent overfitting. The official evaluation scripts and metrics will be made publicly available prior to the evaluation phase to ensure transparency and reproducibility.  </div>
 
 ***Example***
-<div align="justify">Below is a sample of the training data from the Early Modern Spanish Correspondence corpus. Each textual fragment may express multiple emotions—for example, fragment 1 expresses both joy and hope. Alternatively, a fragment may express no emotion at all—for instance, fragment 2, where all emotion values are 0, is considered neutral.  </div>
+<div align="justify">Below is a sample of the training data from the *Post Scriptum* corpus. Each textual fragment may express multiple emotions—for example, fragment 2 expresses both joy and hope. Alternatively, a fragment may express no emotion at all—for instance, fragment 1, where all emotion values are 0, is considered neutral.  </div>
 
 | fragment | text| anger | fear | joy | sadness | surprise | hope |
 |----------|----------|----------|----------|----------|----------|----------|----------|
