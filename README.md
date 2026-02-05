@@ -3,7 +3,7 @@
   <img align="center" src="hisemotions_2026.png" style="position: absolute; bottom: -50px; width: 80%;" />
 </p>
 
-<h1 align="center">HISEMOTIONS 2026: Historical Text Based Emotion Detection in Early Modern Spanish Correspondence</h1>
+<h1 align="center">HISEMOTIONS 2026: Historical Text-Based Emotion Detection in Early Modern Spanish Correspondence</h1>
 
 - [Description of the Task](#description-of-the-task)
   - [Overview](#overview)
