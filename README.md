@@ -25,8 +25,9 @@
 ## Description of the Task
 
 ### Overview
-<p align="justify">
-  
+
+ <div align="justify">
+   
   **HISEMOTIONS 2026** proposes a shared task focused on Text-Based Emotion Detection (TBED) in Early Modern Spanish epistolary texts (16th-17th centuries). The task aims to foster the development and evaluation of NLP methods specifically adapted to historical Spanish language varieties, addressing the semantic and diachronic challenges of emotion and affective states expression in Early Modern Spanish correspondence.  
   
 Previous IberLEF shared tasks on sentiment and emotion analysis have focused on contemporary Spanish and modern genres (e.g., social media, reviews, news), leaving the linguistic and semantic features of Early Modern Spanish largely unexplored. Consequently, the transferability of models and resources developed for modern Spanish to historical language varieties remains unclear, particularly in domains where affective expression follows distinct semantic, cultural, and linguistic conventions. **HISEMOTIONS 2026** seeks to imporove the generalisation of modern Spanish models to Early Modern Spanish, the impact of semantic change on emotion classification, and the effectiveness of domain- and diachrony-aware adaptation strategies compared to direct transfer.
@@ -35,7 +36,7 @@ To date, TBED has demonstrated promising algorithmic performance, particularly f
 
 The motivation for this shared task is to address the challenge that semantic shift (Hu, Amaral, & Kübler, 2022; Montanelli & Periti, 2023; Montes, Manrique-Gómez, & Manrique, 2024) poses for emotion detection in historical texts, given that the lexicons in this domain often exhibit substantial deviations between historical and modern affective meanings. This challenge underscores the need for robust methods that can capture and detect the complexity of affective states expressed in historical correspondence. Another motivation for this shared task is to investigate how large language models (LLMs) and language models (LMs) can contribute to TBED in the domain of historical correspondence, given their promising performance on similar tasks in social media contexts (Plaza del Arco et al., 2020).
 
-</p>
+</div>
 
 ### Relevance and Novelty
 
