@@ -9,7 +9,6 @@
   - [Overview](#overview)
   - [Relevance and Novelty](#relevance-and-novelty)
   - [Challenges Involved](#challenges-involved)
-  - [Roadmap](#roadmap)
   - [Methodological Aspects](#methodological-aspects)
 - [Dataset](#dataset)
   - [Annotation Procedure](#annotation-procedure)
@@ -55,12 +54,6 @@ This task aims to make the following contributions, which, to the best of our kn
 <div align="justify">
 Each of these challenges is critical to the contributions outlined in the previous section.
 </div> 
-
-### Roadmap
-
-<div align="justify">
-  The roadmap for HISEMOTIONS is conceived as a progressive and extensible evaluation framework. The 2026 edition will serve as a foundational task, establishing benchmarks for automatic emotion detection in Early Spanish correspondence from the 16th and 17th centuries and providing the first publicly available annotated resources for this domain. Building on this initial effort, future editions may expand the scope of the task to address more complex and fine-grained challenges, such as cross-century emotion modelling to study diachronic change, emotion cause extraction to identify events triggering emotional states, pragmatic emotion analysis to capture indirect and rhetorical expressions of affects, and cross-lingual comparisons with other Romance languages, fostering broader insights into historical emotion expression across related linguistic traditions.
-</div>  
 
 
 ### Methodological Aspects
