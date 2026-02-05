@@ -120,7 +120,7 @@ Submissions will be evaluated against hidden gold labels, and results will be di
 
 | fragment | text| anger | fear | joy | sadness | surprise | hope |
 |----------|----------|----------|----------|----------|----------|----------|----------|
-| 1  | Y de un mes a esta parte ha sido Dios servido que he sabidolo que digo.  | 0  | 0  | 0  | 0  | 0  | 0  |
+| 1  | Y de un mes a esta parte ha sido Dios servido que he sabido lo que digo.  | 0  | 0  | 0  | 0  | 0  | 0  |
 | 2  | He sentido tan grande alteración de placer que quisiere como pájaro volar a veros.  | 0  | 0  | 1  | 0  | 0  | 1  |
 
 
@@ -131,7 +131,7 @@ Submissions will be evaluated against hidden gold labels, and results will be di
 <div align="justify">
   
 ## Tentative Schedule
-•	Task announcement & website: January 23-**February 9**, 2026.  
+•	Task announcement: **February 9**, 2026.  
 •	Release of development corpora: February 12, 2026.  
 •	Release of training corpora: March 12, 2026.  
 •	Release of test corpora and start of evaluation campaign: March 27, 2026.  
