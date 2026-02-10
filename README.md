@@ -3,7 +3,7 @@
   <img align="center" src="hisemotions_2026.png" style="position: absolute; bottom: -50px; width: 80%;" />
 </p>
 
-<h1 align="center">HISEMOTIONS 2026: Historical Text-Based Emotion Detection in Early Modern Spanish Correspondence</h1>
+<h1 align="center">HISEMOTIONS at IberLEF 2026: Historical Text-Based Emotion Detection in Early Modern Spanish Correspondence</h1>
 
 - [Description of the Task](#description-of-the-task)
   - [Overview](#overview)
@@ -14,7 +14,7 @@
   - [Annotation Procedure](#annotation-procedure)
 - [Baselines](#baselines)
 - [Task setup](#task-setup)
-- [Tentative Schedule](#tentative-schedule)
+- [Schedule](#tentative-schedule)
 - [Organisation Committee](#organisation-committee)
 - [Funding](#funding)
 - [Relevant Issues](#relevant-issues)
@@ -130,7 +130,7 @@ Submissions will be evaluated against hidden gold labels, and results will be di
 
 <div align="justify">
   
-## Tentative Schedule
+## Schedule
 •	Task announcement: **February 9**, 2026.  
 •	Release of development corpora: February 12, 2026.  
 •	Release of training corpora: March 12, 2026.  
