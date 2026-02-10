@@ -14,7 +14,7 @@
   - [Annotation Procedure](#annotation-procedure)
 - [Baselines](#baselines)
 - [Task setup](#task-setup)
-- [Schedule](#tentative-schedule)
+- [Schedule](#schedule)
 - [Organisation Committee](#organisation-committee)
 - [Funding](#funding)
 - [Relevant Issues](#relevant-issues)
