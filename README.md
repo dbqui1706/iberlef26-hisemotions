@@ -5,6 +5,14 @@
 
 <h1 align="center">HISEMOTIONS at IberLEF 2026: Historical Text-Based Emotion Detection in Early Modern Spanish Correspondence</h1>
 
+### 📢 **Important Notice on Datasets Access**
+
+**February 12, 2026 – Validation Dataset published**
+
+ **To download the validation datasets, please visit [Validation Dataset Page](dev/).**  
+ 
+
+
 - [Description of the Task](#description-of-the-task)
   - [Overview](#overview)
   - [Relevance and Novelty](#relevance-and-novelty)
