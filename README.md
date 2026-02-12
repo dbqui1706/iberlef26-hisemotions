@@ -80,7 +80,7 @@ Each of these challenges is critical to the contributions outlined in the previo
 <br>
 <div align="justify">
   
-  The dataset will be divided into **training**, **development**, and **test** splits. The **training** set will be released with gold emotion labels and used to train models. The **development** (validation) set, also released with gold labels, will support initial experiments and model tuning. The **test** set will be released without labels and used for final evaluation. 
+  The dataset will be divided into **training**, **development**, and **test** splits. The **training** set will be released with emotion labels and used to train models. The **development** (validation) set, released with gold labels, will support initial experiments and model tuning. The **test** set will be released without labels and used for final evaluation. 
 Texts are segmented into emotion-bearing units (“**fragments**”), defined as contiguous spans of text corresponding to a clause or sentence that expresses a coherent affective state. **Fragments** derived from the same letter are kept together within a single split to prevent data leakage. Available metadata includes letter-level information (when known) such as approximate date, place of origin, author identity, as provided by the *Post Scriptum* corpus.
  </div>
   <br>
