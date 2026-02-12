@@ -72,16 +72,16 @@ Each of these challenges is critical to the contributions outlined in the previo
 <br>
 <div align="justify">
   
-  The dataset will be divided into **training**, **development**, and **test** splits. The **training** set will be released with gold emotion labels and used to train models. The **development** (validation) set, also released with gold labels, will support, initial experiments and model tuning. The **test** set will be released without labels and used for final evaluation. 
-Texts are segmented into emotion-bearing units (“**fragments**”), defined as contiguous spans of text corresponding to a clause or sentence that expresses a coherent affective state. **Fragments** derived from the same letter are kept together within a single split to prevent data leakage. Available metadata include letter-level information (when known) such as approximate date, place of origin, author identity, as provided by the *Post Scriptum* corpus.
+  The dataset will be divided into **training**, **development**, and **test** splits. The **training** set will be released with gold emotion labels and used to train models. The **development** (validation) set, also released with gold labels, will support initial experiments and model tuning. The **test** set will be released without labels and used for final evaluation. 
+Texts are segmented into emotion-bearing units (“**fragments**”), defined as contiguous spans of text corresponding to a clause or sentence that expresses a coherent affective state. **Fragments** derived from the same letter are kept together within a single split to prevent data leakage. Available metadata includes letter-level information (when known) such as approximate date, place of origin, author identity, as provided by the *Post Scriptum* corpus.
  </div>
   <br>
   
 **Dataset Size (Tentative)**  
 
-•	Training set: ~3000 annotated fragments  
-•	Validation set: ~ 500 fragments  
-•	Test set: ~1,000 fragments  
+•	Training set: ~2500 annotated fragments  
+•	Validation set: ~ 400 fragments  
+•	Test set: ~800 fragments  
 
 
 [^1]:http://teitok.clul.ul.pt/postscriptum/es/index.php?action=downloads
@@ -132,7 +132,7 @@ Submissions will be evaluated against hidden gold labels, and results will be di
   
 ## Schedule
 •	Task announcement: **February 9**, 2026.  
-•	Release of development corpora: February 12, 2026.  
+•	Release of [development corpora](dev/): **February 12**, 2026.  
 •	Release of training corpora: March 12, 2026.  
 •	Release of test corpora and start of evaluation campaign: March 27, 2026.  
 •	End of evaluation campaign (deadline for runs submission): April 30, 2026.  
