@@ -5,6 +5,10 @@
 
 <h1 align="center">HISEMOTIONS at IberLEF 2026: Historical Text-Based Emotion Detection in Early Modern Spanish Correspondence</h1>
 
+### 📢📢 **Important Notice on Codabench Access**
+
+**The [Codabench page](https://www.codabench.org/competitions/14140/?secret_key=c6ae8bdb-dd2f-4908-888a-39354eaa0ebd) is now available to run predictions on the dev set.**
+
 ### 📢 **Important Notice on Datasets Access**
 
 **February 12, 2026 – Validation Dataset published**
@@ -80,7 +84,7 @@ Each of these challenges is critical to the contributions outlined in the previo
 <br>
 <div align="justify">
   
-  The dataset will be divided into **training**, **development**, and **test** splits. The **training** set will be released with emotion labels and used to train models. The **development** (validation) set, released with gold labels, will support initial experiments and model tuning. The **test** set will be released without labels and used for final evaluation. 
+  The dataset will be divided into **training**, **development**, and **test** splits. The **training** set will be released with emotion labels (baseline-LLM-annotated) and used to train models. The **development** (validation) set, released with gold human-annotated labels, will support initial experiments and model tuning. The **test** set will be released without labels and used for final evaluation. 
 Texts are segmented into emotion-bearing units (“**fragments**”), defined as contiguous spans of text corresponding to a clause or sentence that expresses a coherent affective state. **Fragments** derived from the same letter are kept together within a single split to prevent data leakage. Available metadata includes letter-level information (when known) such as approximate date, place of origin, author identity, as provided by the *Post Scriptum* corpus.
  </div>
   <br>
@@ -121,7 +125,7 @@ We used LLMs to semi-automatically annotate selected letters in *Post Scriptum*.
   
 Given a letter fragment, the task is to predict the perceived emotion(s) of the author. Specifically, for each textual fragment, participants should indicate whether each of the following emotions is present: **joy**, **sadness**, **fear**, **anger**, **surprise**, or **hope**. In other words, each fragment should be labeled as: joy (**1**) or no joy (**0**), sadness (1) or no sadness (0), fear (1) or no fear (0), anger (1) or no anger (0), surprise (1) or no surprise (0), and hope (1) or no hope (0).  
 
-Submissions will be evaluated against hidden gold labels, and results will be displayed on a public leaderboard. Participants will submit their predictions in a standardised format, with a limited number of submissions (**The submission details will be indicated further**) per team to prevent overfitting. The official evaluation scripts and metrics will be made publicly available prior to the evaluation phase to ensure transparency and reproducibility.  </div>
+Submissions will be evaluated against hidden gold human-annotated labels, and the results will be shown on a public leaderboard. Participants may choose to submit their results to the leaderboard by themselves. All predictions must be submitted in a standardised format (see the [Codabench page](https://www.codabench.org/competitions/14140/?secret_key=c6ae8bdb-dd2f-4908-888a-39354eaa0ebd)). To ensure transparency and reproducibility, the official evaluation script will be made publicly available before the evaluation phase begins. The test set with gold human-annotated labels will be released after the evaluation campaign ends. </div>
 
 ***Example***
 <div align="justify">Below is a sample of the training data from the *Post Scriptum* corpus. Each textual fragment may express multiple emotions—for example, fragment 2 expresses both joy and hope. Alternatively, a fragment may express no emotion at all—for instance, fragment 1, where all emotion values are 0, is considered neutral.  </div>
