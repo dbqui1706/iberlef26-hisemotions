@@ -5,15 +5,17 @@
 
 <h1 align="center">HISEMOTIONS at IberLEF 2026: Historical Text-Based Emotion Detection in Early Modern Spanish Correspondence</h1>
 
+### 📢 **Important Notice on Datasets Access**
+
+**March 11, 2026 – Training Dataset published**  
+**February 12, 2026 – Validation Dataset published**
+
+ **To download the training datasets, please visit [Training Dataset Page](train/).**  
+ **To download the validation datasets, please visit [Validation Dataset Page](dev/).**  
+ 
 ### 📢📢 **Important Notice on Codabench Access**
 
 **The [Codabench page](https://www.codabench.org/competitions/14140/?secret_key=c6ae8bdb-dd2f-4908-888a-39354eaa0ebd) is now available to run predictions on the dev set.**
-
-### 📢 **Important Notice on Datasets Access**
-
-**February 12, 2026 – Validation Dataset published**
-
- **To download the validation datasets, please visit [Validation Dataset Page](dev/).**  
  
 
 
@@ -91,7 +93,7 @@ Texts are segmented into emotion-bearing units (“**fragments**”), defined as
   
 **Dataset Size (Tentative)**  
 
-•	Training set: ~2500 annotated fragments  
+•	Training set: ~2500 fragments  
 •	Validation set: ~ 400 fragments  
 •	Test set: ~800 fragments  
 
@@ -144,9 +146,9 @@ Submissions will be evaluated against hidden gold human-annotated labels, and th
   
 ## Schedule
 •	Task announcement: **February 9**, 2026.  
-•	Release of [development corpora](dev/): **February 12**, 2026.  
-•	Release of training corpora: March 12, 2026.  
-•	Release of test corpora and start of evaluation campaign: March 27, 2026.  
+•	Release of [development corpus](dev/): **February 12**, 2026.  
+•	Release of [training corpus](train/): **March 11**, 2026.  
+•	Release of test corpus and start of evaluation campaign: March 27, 2026.  
 •	End of evaluation campaign (deadline for runs submission): April 30, 2026.  
 •	Publication of official results: May 4, 2026.  
 •	Paper submission: May 20, 2026.  
