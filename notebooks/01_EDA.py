@@ -9,7 +9,8 @@ import os
 wandb.init(project="hisemotions_2026", job_type="eda")
 
 # Ensure the data directory exists and the raw file is present
-data_path = "../data/raw/train.csv"
+data_path = "data/raw/train.csv"
+images_path = "images/eda"
 if not os.path.exists(data_path):
     print(f"Error: {data_path} not found. Please ensure the data exists in the project root.")
     wandb.finish()
