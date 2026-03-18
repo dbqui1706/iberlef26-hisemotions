@@ -8,6 +8,9 @@ pandas
 jupyter
 matplotlib
 seaborn
+accelerate
 sentencepiece
 protobuf
 tiktoken
+torch 
+torchvision

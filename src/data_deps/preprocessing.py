@@ -3,7 +3,7 @@ from datasets import Dataset
 from transformers import AutoTokenizer
 
 def prepare_dataset(df: pd.DataFrame, model_name: str, max_length: int = 128) -> Dataset:
-    tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=False)
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
     label_cols = ['anger', 'fear', 'joy', 'sadness', 'surprise', 'hope']
     
     # Create labels column as list of floats (required for BCEWithLogitsLoss)

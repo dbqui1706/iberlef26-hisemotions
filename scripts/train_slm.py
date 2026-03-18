@@ -3,6 +3,18 @@ import yaml
 import os
 import sys
 
+# Fix nightly torchvision compatibility: 'datasets' library imports VideoReader
+# which was removed in torchvision nightly. Inject a dummy class before any import.
+try:
+    from torchvision.io import VideoReader  # noqa: F401
+except ImportError:
+    import torchvision.io as _tvio
+    if not hasattr(_tvio, "VideoReader"):
+        class _DummyVideoReader:
+            """Placeholder for removed torchvision.io.VideoReader"""
+            pass
+        _tvio.VideoReader = _DummyVideoReader
+
 # Add project root to path to allow imports from src
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -11,10 +23,9 @@ import numpy as np
 import torch
 from torch import nn
 from transformers import (
-    AutoModelForSequenceClassification, 
-    Trainer, 
+    AutoModelForSequenceClassification,
+    Trainer,
     TrainingArguments,
-    AutoTokenizer
 )
 from src.data_deps.preprocessing import prepare_dataset
 from src.evaluate.metrics import compute_multilabel_metrics
@@ -100,7 +111,7 @@ def main():
         per_device_train_batch_size=config['training']['per_device_train_batch_size'],
         per_device_eval_batch_size=config['training']['per_device_eval_batch_size'],
         num_train_epochs=config['training']['num_train_epochs'],
-        evaluation_strategy=config['training']['evaluation_strategy'],
+        eval_strategy=config['training']['eval_strategy'],
         save_strategy=config['training']['save_strategy'],
         load_best_model_at_end=config['training']['load_best_model_at_end'],
         metric_for_best_model=config['training']['metric_for_best_model'],
