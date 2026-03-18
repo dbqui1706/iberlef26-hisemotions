@@ -50,13 +50,13 @@ class WeightedMultiLabelTrainer(Trainer):
         loss = loss_fct(logits, labels.float())
         return (loss, outputs) if return_outputs else loss
 
-def calculate_pos_weights(df, labels):
-    """Calculate weights for imbalanced classes: pos_weight = (neg_count / pos_count)"""
+def calculate_pos_weights(df, labels, max_weight: float = 10.0):
+    """Calculate weights for imbalanced classes: pos_weight = min(neg/pos, max_weight)"""
     weights = []
     for label in labels:
         pos_count = df[label].sum()
         neg_count = len(df) - pos_count
-        weight = neg_count / (pos_count + 1e-6) # prevent div by zero
+        weight = min(neg_count / (pos_count + 1e-6), max_weight)
         weights.append(weight)
     return torch.tensor(weights, dtype=torch.float)
 
@@ -114,11 +114,14 @@ def main():
         eval_strategy=config['training']['eval_strategy'],
         save_strategy=config['training']['save_strategy'],
         load_best_model_at_end=config['training']['load_best_model_at_end'],
+        save_total_limit=config['training'].get('save_total_limit', 2),
         metric_for_best_model=config['training']['metric_for_best_model'],
         report_to=config['training']['report_to'],
         run_name=config['experiment_name'],
         fp16=torch.cuda.is_available(),
-        logging_steps=10,
+        logging_steps=100,
+        warmup_ratio=config['training'].get('warmup_ratio', 0.1),
+        weight_decay=config['training'].get('weight_decay', 0.01),
     )
     
     # 5. Initialize Trainer
@@ -135,13 +138,27 @@ def main():
     print("Starting training...")
     trainer.train()
     
-    print("Evaluating on dev set...")
+    print("Evaluating on dev set (threshold=0.5)...")
     eval_results = trainer.evaluate()
-    print(f"Final Evaluation results: {eval_results}")
+    print(f"Evaluation results (default threshold): {eval_results}")
     
-    # 7. Save final model
-    trainer.save_model(os.path.join(config['training']['output_dir'], "final_model"))
-    print("Model saved successfully.")
+    # 7. Post-training: Optimize per-class thresholds on dev set
+    print("Optimizing per-class thresholds on dev set...")
+    from src.evaluate.metrics import find_optimal_thresholds
+    dev_predictions = trainer.predict(dev_dataset)
+    optimal_thresholds, optimized_f1 = find_optimal_thresholds(
+        dev_predictions.predictions, dev_predictions.label_ids, label_cols
+    )
+    print(f"Optimal thresholds: {optimal_thresholds}")
+    print(f"Optimized Macro-F1: {optimized_f1:.4f}")
+    
+    # 8. Save final model + thresholds
+    import json
+    save_dir = os.path.join(config['training']['output_dir'], "final_model")
+    trainer.save_model(save_dir)
+    with open(os.path.join(save_dir, "optimal_thresholds.json"), "w") as f:
+        json.dump({"thresholds": optimal_thresholds, "labels": label_cols, "optimized_macro_f1": optimized_f1}, f, indent=2)
+    print(f"Model and thresholds saved to {save_dir}")
 
 if __name__ == "__main__":
     main()

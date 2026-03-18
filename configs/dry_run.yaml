@@ -1,6 +1,6 @@
 experiment_name: "dry_run_test"
 model:
-  name: "dccuchile/bert-base-spanish-wwm-uncased"
+  name: "xlm-roberta-base"
   max_length: 64
 data:
   train_path: "data/raw/train.csv"
