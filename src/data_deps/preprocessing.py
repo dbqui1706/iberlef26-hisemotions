@@ -3,11 +3,14 @@ from datasets import Dataset
 from transformers import AutoTokenizer
 
 def prepare_dataset(df: pd.DataFrame, model_name: str, max_length: int = 128) -> Dataset:
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=False)
     label_cols = ['anger', 'fear', 'joy', 'sadness', 'surprise', 'hope']
     
     # Create labels column as list of floats (required for BCEWithLogitsLoss)
     df['labels'] = df[label_cols].values.astype(float).tolist()
+    
+    # Ensure text is string and handle NaNs
+    df['text'] = df['text'].fillna("").astype(str)
     
     dataset = Dataset.from_pandas(df[['text', 'labels']])
     
