@@ -1,0 +1,18 @@
+experiment_name: "roberta_baseline"
+model:
+  name: "PlanTL-GOB-ES/roberta-base-bne"
+  max_length: 128
+data:
+  train_path: "data/raw/train.csv"
+  dev_path: "data/raw/dev.csv"
+training:
+  output_dir: "models/slm_checkpoints"
+  learning_rate: 2.0e-5
+  per_device_train_batch_size: 16
+  per_device_eval_batch_size: 16
+  num_train_epochs: 5
+  evaluation_strategy: "epoch"
+  save_strategy: "epoch"
+  load_best_model_at_end: true
+  metric_for_best_model: "macro_f1"
+  report_to: "wandb"
