@@ -8,3 +8,6 @@ pandas
 jupyter
 matplotlib
 seaborn
+sentencepiece
+protobuf
+tiktoken
