@@ -1,4 +1,4 @@
-experiment_name: "beto_fp32_v4"
+experiment_name: "beto_bf16_v4"
 model:
   name: "dccuchile/bert-base-spanish-wwm-uncased"
   max_length: 128
