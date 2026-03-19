@@ -3,21 +3,19 @@ import yaml
 import os
 import sys
 
-# Fix nightly torchvision compatibility: 'datasets' library imports VideoReader
-# which was removed in torchvision nightly. Inject a dummy class before any import.
+# Fix nightly torchvision compatibility
 try:
     from torchvision.io import VideoReader  # noqa: F401
 except ImportError:
     import torchvision.io as _tvio
     if not hasattr(_tvio, "VideoReader"):
         class _DummyVideoReader:
-            """Placeholder for removed torchvision.io.VideoReader"""
             pass
         _tvio.VideoReader = _DummyVideoReader
 
-# Add project root to path to allow imports from src
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+import json
 import pandas as pd
 import numpy as np
 import torch
@@ -28,137 +26,196 @@ from transformers import (
     TrainingArguments,
 )
 from src.data_deps.preprocessing import prepare_dataset
-from src.evaluate.metrics import compute_multilabel_metrics
+from src.evaluate.metrics import compute_multilabel_metrics, find_optimal_thresholds
+from src.losses.asl import AsymmetricLoss
 
-class WeightedMultiLabelTrainer(Trainer):
-    def __init__(self, *args, class_weights=None, **kwargs):
+
+# ---------------------------------------------------------------------------
+# Trainer with ASL loss (drop-in replacement for WeightedMultiLabelTrainer)
+# ---------------------------------------------------------------------------
+
+class ASLTrainer(Trainer):
+    """
+    Trainer using Asymmetric Loss instead of BCEWithLogitsLoss.
+
+    Supported YAML config (all optional, has defaults):
+        loss:
+          type: "asl"        # "asl" | "weighted_bce"
+          gamma_neg: 4       # ASL: penalize easy negatives
+          gamma_pos: 0       # ASL: do not discount hard positives
+          clip: 0.05         # ASL: clip negative probabilities
+          max_weight: 10.0   # weighted_bce: cap pos_weight
+    """
+
+    def __init__(self, *args, loss_fn=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.class_weights = class_weights
+        # If no loss_fn provided, fallback to plain BCE
+        self.loss_fn = loss_fn if loss_fn is not None else nn.BCEWithLogitsLoss()
 
     def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
         labels = inputs.get("labels")
         outputs = model(**inputs)
         logits = outputs.get("logits")
-        
-        if self.class_weights is not None:
-            # Move weights to correct device
-            weights = self.class_weights.to(logits.device)
-            loss_fct = nn.BCEWithLogitsLoss(pos_weight=weights)
-        else:
-            loss_fct = nn.BCEWithLogitsLoss()
-            
-        loss = loss_fct(logits, labels.float())
+
+        # Ensure loss_fn runs on the correct device
+        loss = self.loss_fn(logits, labels.float())
         return (loss, outputs) if return_outputs else loss
 
-def calculate_pos_weights(df, labels, max_weight: float = 10.0):
-    """Calculate weights for imbalanced classes: pos_weight = min(neg/pos, max_weight)"""
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def build_loss_fn(config: dict, train_df: pd.DataFrame, label_cols: list, device: torch.device):
+    """
+    Read config['loss'] and return the appropriate loss function.
+    Default: ASL with gamma_neg=4, gamma_pos=0, clip=0.05
+    """
+    loss_cfg = config.get("loss", {})
+    loss_type = loss_cfg.get("type", "asl").lower()
+
+    if loss_type == "asl":
+        gamma_neg = float(loss_cfg.get("gamma_neg", 4.0))
+        gamma_pos = float(loss_cfg.get("gamma_pos", 0.0))
+        clip      = float(loss_cfg.get("clip", 0.05))
+        print(f"  Loss: AsymmetricLoss(gamma_neg={gamma_neg}, gamma_pos={gamma_pos}, clip={clip})")
+        return AsymmetricLoss(gamma_neg=gamma_neg, gamma_pos=gamma_pos, clip=clip)
+
+    elif loss_type == "weighted_bce":
+        max_weight = float(loss_cfg.get("max_weight", 10.0))
+        weights = _calculate_pos_weights(train_df, label_cols, max_weight).to(device)
+        print(f"  Loss: WeightedBCE  pos_weights={weights.tolist()}")
+        return nn.BCEWithLogitsLoss(pos_weight=weights)
+
+    else:
+        print(f"  Loss: BCEWithLogitsLoss (fallback — unknown type '{loss_type}')")
+        return nn.BCEWithLogitsLoss()
+
+
+def _calculate_pos_weights(df: pd.DataFrame, labels: list, max_weight: float = 10.0) -> torch.Tensor:
     weights = []
     for label in labels:
-        pos_count = df[label].sum()
-        neg_count = len(df) - pos_count
-        weight = min(neg_count / (pos_count + 1e-6), max_weight)
-        weights.append(weight)
+        pos = df[label].sum()
+        neg = len(df) - pos
+        weights.append(min(neg / (pos + 1e-6), max_weight))
     return torch.tensor(weights, dtype=torch.float)
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
 
 def main():
     parser = argparse.ArgumentParser(description="Train SLM for HISEMOTIONS")
-    parser.add_argument("--config", type=str, required=True, help="Path to YAML config")
+    parser.add_argument("--config", type=str, required=True)
     args = parser.parse_args()
-    
-    with open(args.config, 'r') as f:
+
+    with open(args.config, "r") as f:
         config = yaml.safe_load(f)
-        
-    print(f"Starting experiment: {config['experiment_name']}")
-    
-    # 1. Load raw data
-    train_df = pd.read_csv(config['data']['train_path'])
-    dev_df = pd.read_csv(config['data']['dev_path'])
-    
-    label_cols = ['anger', 'fear', 'joy', 'sadness', 'surprise', 'hope']
-    pos_weights = calculate_pos_weights(train_df, label_cols)
-    print(f"Calculated class weights: {pos_weights}")
-    
-    # 2. Prepare datasets
+
+    print(f"\n{'='*60}")
+    print(f"Experiment : {config['experiment_name']}")
+    print(f"Model      : {config['model']['name']}")
+    print(f"{'='*60}\n")
+
+    # 1. Load data
+    train_df = pd.read_csv(config["data"]["train_path"])
+    dev_df   = pd.read_csv(config["data"]["dev_path"])
+    label_cols = ["anger", "fear", "joy", "sadness", "surprise", "hope"]
+
+    # 2. Device
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Device: {device}\n")
+
+    # 3. Loss function
+    loss_fn = build_loss_fn(config, train_df, label_cols, device)
+
+    # 4. Prepare datasets
     train_dataset = prepare_dataset(
-        train_df, 
-        config['model']['name'], 
-        max_length=config['model']['max_length']
+        train_df, config["model"]["name"],
+        max_length=config["model"]["max_length"]
     )
     dev_dataset = prepare_dataset(
-        dev_df, 
-        config['model']['name'], 
-        max_length=config['model']['max_length']
+        dev_df, config["model"]["name"],
+        max_length=config["model"]["max_length"]
     )
-    
-    # 3. Load Model and send to Device
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using device: {device}")
-    
+
+    # 5. Load model
+    #    problem_type="multi_label_classification" sets the correct config for XLM-R and BETO
+    #    — no need to manually map state_dict, from_pretrained handles it automatically.
     model = AutoModelForSequenceClassification.from_pretrained(
-        config['model']['name'],
+        config["model"]["name"],
         num_labels=len(label_cols),
-        problem_type="multi_label_classification"
+        problem_type="multi_label_classification",
+        ignore_mismatched_sizes=True,   # avoid classifier head size mismatch errors
     )
     model.to(device)
-    
-    # Send class weights to device so the loss function can use them
-    pos_weights = pos_weights.to(device)
-    
-    # 4. Training Arguments
+
+    # 6. TrainingArguments
     training_args = TrainingArguments(
-        output_dir=config['training']['output_dir'],
-        learning_rate=float(config['training']['learning_rate']),
-        per_device_train_batch_size=config['training']['per_device_train_batch_size'],
-        per_device_eval_batch_size=config['training']['per_device_eval_batch_size'],
-        num_train_epochs=config['training']['num_train_epochs'],
-        eval_strategy=config['training']['eval_strategy'],
-        save_strategy=config['training']['save_strategy'],
-        load_best_model_at_end=config['training']['load_best_model_at_end'],
-        save_total_limit=config['training'].get('save_total_limit', 2),
-        metric_for_best_model=config['training']['metric_for_best_model'],
-        report_to=config['training']['report_to'],
-        run_name=config['experiment_name'],
+        output_dir=config["training"]["output_dir"],
+        learning_rate=float(config["training"]["learning_rate"]),
+        per_device_train_batch_size=config["training"]["per_device_train_batch_size"],
+        per_device_eval_batch_size=config["training"]["per_device_eval_batch_size"],
+        num_train_epochs=config["training"]["num_train_epochs"],
+        eval_strategy=config["training"]["eval_strategy"],
+        save_strategy=config["training"]["save_strategy"],
+        load_best_model_at_end=config["training"]["load_best_model_at_end"],
+        save_total_limit=config["training"].get("save_total_limit", 2),
+        metric_for_best_model=config["training"]["metric_for_best_model"],
+        report_to=config["training"]["report_to"],
+        run_name=config["experiment_name"],
+        # fp16 only on CUDA; BETO is incompatible with bf16 (causes NaN)
         fp16=torch.cuda.is_available(),
-        logging_steps=100,
-        warmup_ratio=config['training'].get('warmup_ratio', 0.1),
-        weight_decay=config['training'].get('weight_decay', 0.01),
+        bf16=False,
+        logging_steps=50,
+        warmup_ratio=config["training"].get("warmup_ratio", 0.1),
+        weight_decay=config["training"].get("weight_decay", 0.01),
     )
-    
-    # 5. Initialize Trainer
-    trainer = WeightedMultiLabelTrainer(
+
+    # 7. Trainer
+    trainer = ASLTrainer(
         model=model,
         args=training_args,
         train_dataset=train_dataset,
         eval_dataset=dev_dataset,
         compute_metrics=compute_multilabel_metrics,
-        class_weights=pos_weights
+        loss_fn=loss_fn,
     )
-    
-    # 6. Train & Evaluate
-    print("Starting training...")
+
+    # 8. Train
+    print("Training...\n")
     trainer.train()
-    
-    print("Evaluating on dev set (threshold=0.5)...")
+
+    # 9. Eval default threshold
+    print("\nEvaluating (threshold = 0.5)...")
     eval_results = trainer.evaluate()
-    print(f"Evaluation results (default threshold): {eval_results}")
-    
-    # 7. Post-training: Optimize per-class thresholds on dev set
-    print("Optimizing per-class thresholds on dev set...")
-    from src.evaluate.metrics import find_optimal_thresholds
-    dev_predictions = trainer.predict(dev_dataset)
+    print(f"Results: {eval_results}")
+
+    # 10. Optimize per-class thresholds
+    print("\nOptimizing per-class thresholds...")
+    dev_preds = trainer.predict(dev_dataset)
     optimal_thresholds, optimized_f1 = find_optimal_thresholds(
-        dev_predictions.predictions, dev_predictions.label_ids, label_cols
+        dev_preds.predictions, dev_preds.label_ids, label_cols
     )
-    print(f"Optimal thresholds: {optimal_thresholds}")
     print(f"Optimized Macro-F1: {optimized_f1:.4f}")
-    
-    # 8. Save final model + thresholds
-    import json
-    save_dir = os.path.join(config['training']['output_dir'], "final_model")
+
+    # 11. Save
+    save_dir = os.path.join(config["training"]["output_dir"], "final_model")
     trainer.save_model(save_dir)
     with open(os.path.join(save_dir, "optimal_thresholds.json"), "w") as f:
-        json.dump({"thresholds": optimal_thresholds, "labels": label_cols, "optimized_macro_f1": optimized_f1}, f, indent=2)
-    print(f"Model and thresholds saved to {save_dir}")
+        json.dump(
+            {
+                "thresholds": optimal_thresholds,
+                "labels": label_cols,
+                "optimized_macro_f1": optimized_f1,
+                "loss_type": config.get("loss", {}).get("type", "asl"),
+                "experiment": config["experiment_name"],
+            },
+            f, indent=2,
+        )
+    print(f"\nSaved to: {save_dir}")
+
 
 if __name__ == "__main__":
     main()
