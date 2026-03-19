@@ -139,11 +139,16 @@ def main():
     label_cols = ["anger", "fear", "joy", "sadness", "surprise", "hope"]
 
     # Clean data via preprocessing pipeline
-    from src.data_deps.preprocessing import clean_dataframe
+    from src.data_deps.preprocessing import clean_dataframe, round_robin_balance
     print("\nCleaning Train Data:")
     train_df = clean_dataframe(train_df, label_cols)
     print("Cleaning Dev Data:")
     dev_df   = clean_dataframe(dev_df, label_cols)
+    
+    # Optional Class Balancing
+    if config["data"].get("balance_classes") == "round_robin":
+        print("\nBalancing Train Data (Round-Robin):")
+        train_df = round_robin_balance(train_df, label_cols)
 
     # 2. Device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

@@ -1,0 +1,33 @@
+experiment_name: "beto_asl_v7_fixed"
+model:
+  name: "dccuchile/bert-base-spanish-wwm-uncased"
+  max_length: 256
+
+data:
+  train_path: "data/raw/train.csv"
+  dev_path: "data/raw/dev.csv"
+  balance_classes: "round_robin"
+
+loss:
+  type: "weighted_bce"
+  max_weight: 5.0
+  # gamma_neg: 2             # heavily penalize easy negatives
+  # gamma_pos: 0             # do not discount hard positives
+  # clip: 0.02              # floor negative probability at 0.05
+
+training:
+  output_dir: "models/slm_checkpoints"
+  learning_rate: 2.0e-5
+  per_device_train_batch_size: 16
+  per_device_eval_batch_size: 4
+  num_train_epochs: 5
+  eval_strategy: "epoch"
+  save_strategy: "epoch"
+  load_best_model_at_end: true
+  save_total_limit: 1
+  metric_for_best_model: "macro_f1"
+  report_to: "wandb"
+  warmup_ratio: 0.1
+  weight_decay: 0.01
+  precision: "fp32"        # avoid gradient underflow with ASL + rare classes
+  max_grad_norm: 1.0       # prevent NaN gradients

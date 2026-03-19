@@ -67,3 +67,29 @@ def test_clean_dataframe_merges_duplicates_with_or_logic():
     dup_row2 = cleaned[cleaned['text'] == "Duplicate Text"].iloc[0]
     assert dup_row2['anger'] == 0.0
     assert dup_row2['fear'] == 0.0
+
+def test_round_robin_balance():
+    from src.data_deps.preprocessing import round_robin_balance
+    data = {
+        'text': ["t1", "t2", "t3", "t4", "t5"],
+        'sadness': [1.0, 1.0, 1.0, 0.0, 0.0],
+        'fear':    [0.0, 0.0, 0.0, 1.0, 0.0],
+        'anger':   [0.0, 0.0, 0.0, 0.0, 1.0]
+    }
+    df = pd.DataFrame(data)
+    label_cols = ['sadness', 'fear', 'anger']
+    # sadness: 3, fear: 1, anger: 1
+    # Group rarity: anger(1) -> fear(1) -> sadness(3)
+    # M = 3. scale_anger = 3/1=3. scale_fear = 3/1=3. scale_sadness = 3/3=1.
+    # Total expected rows: 3 (anger) + 3 (fear) + 3 (sadness) = 9
+    
+    balanced = round_robin_balance(df, label_cols)
+    assert len(balanced) == 9
+    
+    # Check if interleaving works (round robin)
+    # The first 3 rows should be 3 different classes
+    counts_first_3 = balanced.iloc[:3][label_cols].sum()
+    assert counts_first_3['sadness'] >= 1
+    assert counts_first_3['fear'] >= 1
+    assert counts_first_3['anger'] >= 1
+
