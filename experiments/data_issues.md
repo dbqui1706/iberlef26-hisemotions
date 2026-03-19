@@ -1,155 +1,85 @@
-# Data Issues — HISEMOTIONS 2026
+# Data Issues — HISEMOTIONS 2026 (UPDATED: 2026-03-19)
 
-> Phân tích chi tiết các vấn đề dữ liệu ảnh hưởng đến hiệu năng mô hình.  
-> Generated: 2026-03-18 | Train: 2,659 samples | Dev: 425 samples | Labels: 6 emotions
-
----
-
-## Issue 1: 🔴 Extreme Class Imbalance (Train)
-
-**Severity: CRITICAL**
-
-Phân bố nhãn trong tập train cực kỳ mất cân bằng:
-
-| Label | Count | % | Neg/Pos Ratio | Severity |
-|-------|-------|---|---------------|----------|
-| sadness | 1,180 | 44.4% | 1.3:1 | ✅ OK |
-| fear | 303 | 11.4% | 7.8:1 | ⚠️ Moderate |
-| joy | 129 | 4.9% | 19.6:1 | ⚠️ Moderate |
-| hope | 73 | 2.7% | 35.4:1 | 🔴 Severe |
-| **anger** | **12** | **0.5%** | **220.6:1** | 🔴 **Critical** |
-| **surprise** | **9** | **0.3%** | **294.4:1** | 🔴 **Critical** |
-
-![Train vs Dev Distribution](charts/01_train_vs_dev_distribution.png)
-
-![Class Imbalance Ratio](charts/03_class_imbalance_ratio.png)
-
-**Impact**: Với macro-F1 = average F1 across 6 classes, anger và surprise (F1 ≈ 0) kéo toàn bộ metric xuống. Đây là **bottleneck #1** của hệ thống.
+> Phân tích chi tiết các đặc trưng dữ liệu ảnh hưởng đến quá trình huấn luyện mô hình.
+> Tập dữ liệu đã đi qua bước Tiền xử lý (Preprocessing): Loại bỏ NaN, xử lý chuỗi ngắn, hợp nhất nhãn trùng lặp và THÊM nhãn `neutral`.
+> Lớp nhãn mới: `['anger', 'fear', 'joy', 'sadness', 'surprise', 'hope', 'neutral']`
+> Kích thước Train: 2,484 mẫu | Dev: 400 mẫu.
 
 ---
 
-## Issue 2: 🔴 Train-Dev Distribution Mismatch
-
-**Severity: CRITICAL**
-
-Phân bố nhãn giữa Train (LLM-annotated) và Dev (human-annotated) **rất khác nhau**:
-
-| Label | Train % | Dev % | Ratio (Dev/Train) | Issue |
-|-------|---------|-------|-------------------|-------|
-| anger | 0.5% | 12.2% | **24.4x** | 🔴 Extreme |
-| hope | 2.7% | 20.0% | **7.4x** | 🔴 Severe |
-| surprise | 0.3% | 1.6% | 4.9x | 🟡 Moderate |
-| joy | 4.9% | 6.8% | 1.4x | ✅ OK |
-| fear | 11.4% | 9.4% | 0.8x | ✅ OK |
-| sadness | 44.4% | 16.5% | **0.4x** | 🟡 Over-represented |
-
-![Distribution Mismatch](charts/02_distribution_mismatch.png)
-
-**Root cause**: Train labels do **LLM semi-automatic annotation** → LLM bias:
-- LLM gán quá nhiều sadness (44.4% train vs 16.5% dev)  
-- LLM bỏ sót anger (0.5% train vs 12.2% dev) và hope (2.7% vs 20.0%)
-
-**Impact**: Model learn từ biased distribution → predict sai trên dev (gold labels).
+## 1. Dữ liệu đã sạch 100% (Clean Data)
+Báo cáo tiền xử lý:
+- Dữ liệu bị nhiễu NaN đã bị xóa bỏ, ngăn ngừa NaN Loss.
+- Không còn câu văn bản ngắn < 3 ký tự.
+- Samples bị trùng lặp Text đã được hợp nhất nhãn (bằng phép Toán OR).
+- Tổng Row Train giảm từ 2659 -> 2484. Dev giảm 425 -> 400.
 
 ---
 
-## Issue 3: 🟡 Nearly Half Samples Are Neutral
+## 2. Phân bố nhãn đã thay đổi: Neutral là Lớp Đa Số
+Trước đây, vì không có nhãn tường minh cho các câu không mang cảm xúc, model bị bắt "không dự đoán gì cả". Hiện tại, nhãn `neutral` đã trở thành lớp đứng đầu (1148 mẫu), định hình lại nhận thức của mô hình về phân bổ thực sự.
 
-**Severity: MODERATE**
+| Emotion | Train Count | % of Train | Dev Count | % of Dev | Severity |
+|---------|------------:|-----------:|----------:|---------:|:---------|
+| 🖤 **neutral** | 1,148 | 46.2% | 181 | 45.3% | ✅ OK |
+| 😢 **sadness** | 1,139 | 45.9% | 70 | 17.5% | ⚠️ Train > Dev |
+| 😨 **fear** | 293 | 11.8% | 40 | 10.0% | ✅ OK |
+| 😊 **joy** | 121 | 4.9% | 29 | 7.3% | ✅ OK |
+| 🌟 **hope** | 73 | 2.9% | 85 | 21.3% | 🔴 Dev >>> Train |
+| 😡 **anger** | 11 | 0.4% | 52 | 13.0% | 🔴 Dev >>> Train |
+| 😲 **surprise**| 7 | 0.3% | 7 | 1.8% | 🔴 Critical Rarest |
 
-| Split | Neutral Samples | % |
-|-------|----------------|---|
-| Train | 1,271 / 2,659 | **47.8%** |
-| Dev | 206 / 425 | **48.5%** |
+![Train vs Dev Distribution](../docs/images/01_train_vs_dev_distribution.png)
+![Class Imbalance Ratio](../docs/images/03_class_imbalance_ratio.png)
 
-![Labels per Sample](charts/04_labels_per_sample.png)
-
-**Distribution of label counts per sample (Train):**
-- 0 labels (neutral): 1,271 (47.8%)
-- 1 label: 1,093 (41.1%)
-- 2 labels: 273 (10.3%)
-- 3 labels: 21 (0.8%)
-- 4 labels: 1 (0.0%)
-
-Mean labels/sample = **0.64** — rất sparse.
-
-**Impact**: Model dễ bias toward predicting "no emotion" cho mọi class. Threshold = 0.5 quá cao cho rare classes.
+> **Nhận xét:** Train cực kỳ mất cân bằng. Nhóm rare classes (anger, surprise, hope) quá ít mẫu so với Dev và với chính Train.
 
 ---
 
-## Issue 4: 🟡 Sparse Multi-label Co-occurrence
+## 3. Train-Dev Distribution Mismatch Khủng hoảng
 
-**Severity: MODERATE**
+Sự chênh lệch giữa Train (LLM-annotated) và Dev (Human Gold standard) vẫn là một vấn đề cực kỳ căng thẳng chưa thể thay đổi trừ khi dùng Data Augmentation.
 
-![Label Co-occurrence](charts/05_label_cooccurrence.png)
+![Distribution Mismatch](../docs/images/02_distribution_mismatch.png)
 
-**Observations:**
-- Multi-label rất hiếm: chỉ ~11% samples có ≥2 labels
-- Label co-occurrence chủ yếu giữa sadness + fear (phổ biến nhất)
-- anger, surprise gần như không co-occur với label khác (quá ít data)
-- Khó model label dependency khi co-occurrence data quá sparse
+- **Anger:** Dev chiếm 13%, nhưng Train chỉ có 0.4% (Thiếu hụt ~32.5 lần!).
+- **Hope:** Dev chiếm 21.3%, Train chỉ 2.9% (Thiếu hụt ~7 lần!).
+- **Sadness:** Train chiếm đến 45.9% nhưng tập Dev chỉ có 17.5%.
 
----
-
-## Issue 5: 🟢 Text Length Variation
-
-**Severity: LOW**
-
-![Text Length Distribution](charts/06_text_length_distribution.png)
-
-![Text Length by Emotion](charts/07_text_length_by_emotion.png)
-
-**Key observations:**
-- Đa số fragments ngắn (median ~15-25 words)
-- Một số fragments rất dài (100+ words)
-- `max_length=128` tokens trong current config có thể đủ cho phần lớn, nhưng long fragments sẽ bị truncated
-- Không có sự khác biệt lớn về text length giữa các emotion classes
+> **Tác động (Impact):** Mô hình có xu hướng thiên vị (Bias) dự đoán `neutral` và `sadness`, đồng thời học rất yếu `anger` và `hope`.
 
 ---
 
-## Summary: Priority của Các Vấn Đề
+## 4. Đặc điểm Multi-Label (Số Nhãn trên Câu)
 
-| # | Issue | Severity | Impact on Macro-F1 | Suggested Fix |
-|---|-------|----------|-------------------|---------------|
-| 1 | Extreme class imbalance | 🔴 CRITICAL | Trực tiếp kéo F1 xuống | Data augmentation + ASL loss |
-| 2 | Train-Dev distribution mismatch | 🔴 CRITICAL | Model learn sai distribution | Verify/re-annotate train labels |
-| 3 | ~48% neutral samples | 🟡 MODERATE | Model bias "no emotion" | Per-class threshold optimization |
-| 4 | Sparse co-occurrence | 🟡 MODERATE | Khó model label dependency | Not critical for 6 labels |
-| 5 | Text length variation | 🟢 LOW | Minor truncation | Increase max_length to 256 |
+Vì chúng ta đã điền 1 vào `neutral` cho những câu [0,0,0,0,0,0], bây giờ *mỗi câu trong dataset đều có ít nhất 1 nhãn*.
+
+![Labels per Sample](../docs/images/04_labels_per_sample.png)
+
+- Phần lớn các câu chỉ chứa 1 cảm xúc duy nhất (`sadness`, `fear`, hoặc `neutral`).
+- Cực kì ít câu có từ 2 cảm xúc trở lên.
+
+![Label Co-occurrence](../docs/images/05_label_cooccurrence.png)
+
+- Khi có 2 cảm xúc, sự gắn kết mạnh nhất là giữa `sadness` và `fear`. Các cảm xúc hiếm (như `anger`, `surprise`) gần như cô lập hoàn toàn.
 
 ---
 
-*Charts generated by `generate_data_issue_charts.py` | Data: train.csv (2,659), dev.csv (425)*
+## 5. Phân bổ Độ Dài Câu (Text Length)
+
+![Text Length Distribution](../docs/images/06_text_length_distribution.png)
+![Text Length by Emotion](../docs/images/07_text_length_by_emotion.png)
+
+- Phân bổ Text Length không đổi so với RAW data. Độ dài trung bình: 15-25 từ. Cấu hình `max_length = 256` token là hoàn toàn phù hợp và an toàn.
 
 ---
 
-## UPDATE (2026-03-19): Data Preprocessing Results
+## Kết luận & Định hướng Kỹ thuật
 
-Sau khi áp dụng Pipeline tiền xử lý (xóa NaN, lọc short-texts, gộp duplicates), tập dữ liệu đã sạch và có thêm nhãn `neutral` (Tất cả 6 nhãn đều bằng 0). Đây là thống kê thực tế:
+Tập Training hiện tại đã đạt độ tin cậy kĩ thuật (không chứa file rác/NaN), sẵn sàng chắp cánh cho mô hình. 
 
-### 1. Kích thước Dữ liệu (Row Counts)
+**Vấn đề cốt lõi duy nhất còn tồn tại cản trở điểm F1 Score:**
+Vấn đề 1: Lệch pha Train-Dev và Lớp Rare quá nhỏ bé (7 mẫu).
+- **Giải pháp:** Sử dụng hàm Loss Asymmetric Loss (ASL) hoặc Focal Loss để mô hình không phạt nặng lớp thiểu số. *KHÔNG Nên dùng Copy-Paste Oversampling vì dễ gây Overfitting nghiêm trọng cho 7 mẫu `surprise`.*
 
-| Split | Raw (Trước xử lý) | Processed (Sau xử lý) | Mẫu bị loại |
-|-------|------------------:|----------------------:|------------:|
-| Train | 2,659 | **2,484** | - 175 |
-| Dev | 425 | **400** | - 25 |
-
-![Dataset Size Comparison](../docs/images/dataset_size_comparison.png)
-
-### 2. Phân phối Nhãn (Class Distribution) sau khi thêm `neutral`
-
-| Emotion | Raw Train | Processed Train | Raw Dev | Processed Dev |
-|---------|----------:|----------------:|--------:|--------------:|
-| 🖤 **neutral** | 1,255 | **1,148** | 206 | **181** |
-| 😢 **sadness** | 1,180 | **1,139** | 70 | **70** |
-| 😨 **fear** | 303 | **293** | 40 | **40** |
-| 😊 **joy** | 122 | **121** | 29 | **29** |
-| 🌟 **hope** | 73 | **73** | 85 | **85** |
-| 😡 **anger** | 11 | **11** | 52 | **52** |
-| 😲 **surprise**| 7 | **7** | 7 | **7** |
-
-![Class Distribution Comparison](../docs/images/class_distribution_comparison.png)
-
-**Kết luận Data Processing:**
-- Rủi ro toán học từ giá trị NaN và các chuỗi văn bản sai chuẩn đã được khắc phục hoàn toàn.
-- Bức tranh thực sự của dataset cho thấy `neutral` (không có cảm xúc nào) mới là **Majority Class lớn nhất** chứ không phải `sadness`. Mô hình Fine-Tuning sẽ chuyển sang giải bài toán 7-classes classification.
+*Charts regenerated on processed valid dataset.*
