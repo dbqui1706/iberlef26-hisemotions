@@ -13,11 +13,13 @@ except ImportError:
             pass
         _tvio.VideoReader = _DummyVideoReader
 
+# Set wandb project name
+os.environ["WANDB_PROJECT"] = "hisemotions_2026"
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import json
 import pandas as pd
-import numpy as np
 import torch
 from torch import nn
 from transformers import (
@@ -28,7 +30,6 @@ from transformers import (
 from src.data_deps.preprocessing import prepare_dataset
 from src.evaluate.metrics import compute_multilabel_metrics, find_optimal_thresholds
 from src.losses.asl import AsymmetricLoss
-
 
 # ---------------------------------------------------------------------------
 # Trainer with ASL loss (drop-in replacement for WeightedMultiLabelTrainer)
@@ -58,7 +59,7 @@ class ASLTrainer(Trainer):
         logits = outputs.get("logits")
 
         # Ensure loss_fn runs on the correct device
-        loss = self.loss_fn(logits, labels.float())
+        loss = self.loss_fn(logits.to(torch.float32), labels.to(torch.float32))
         return (loss, outputs) if return_outputs else loss
 
 
@@ -72,7 +73,7 @@ def build_loss_fn(config: dict, train_df: pd.DataFrame, label_cols: list, device
     Default: ASL with gamma_neg=4, gamma_pos=0, clip=0.05
     """
     loss_cfg = config.get("loss", {})
-    loss_type = loss_cfg.get("type", "asl").lower()
+    loss_type = loss_cfg.get("type", "weighted_bce").lower()
 
     if loss_type == "asl":
         gamma_neg = float(loss_cfg.get("gamma_neg", 4.0))
@@ -118,10 +119,31 @@ def main():
     print(f"Model      : {config['model']['name']}")
     print(f"{'='*60}\n")
 
+    # Initialize wandb if available and configured
+    if config["training"].get("report_to") == "wandb":
+        try:
+            import wandb
+            wandb.init(
+                project="hisemotions_2026",
+                name=config["experiment_name"],
+                config=config,
+                reinit=True,
+            )
+        except ImportError:
+            print("Warning: wandb not installed, disabling wandb reporting")
+            config["training"]["report_to"] = "none"
+
     # 1. Load data
     train_df = pd.read_csv(config["data"]["train_path"])
     dev_df   = pd.read_csv(config["data"]["dev_path"])
     label_cols = ["anger", "fear", "joy", "sadness", "surprise", "hope"]
+
+    # Clean data via preprocessing pipeline
+    from src.data_deps.preprocessing import clean_dataframe
+    print("\nCleaning Train Data:")
+    train_df = clean_dataframe(train_df, label_cols)
+    print("Cleaning Dev Data:")
+    dev_df   = clean_dataframe(dev_df, label_cols)
 
     # 2. Device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -141,15 +163,20 @@ def main():
     )
 
     # 5. Load model
-    #    problem_type="multi_label_classification" sets the correct config for XLM-R and BETO
-    #    — no need to manually map state_dict, from_pretrained handles it automatically.
     model = AutoModelForSequenceClassification.from_pretrained(
         config["model"]["name"],
         num_labels=len(label_cols),
         problem_type="multi_label_classification",
         ignore_mismatched_sizes=True,   # avoid classifier head size mismatch errors
     )
+
     model.to(device)
+
+    # warmup steps 
+    total_steps = (len(train_dataset) // config["training"]["per_device_train_batch_size"]) \
+                  * config["training"]["num_train_epochs"]
+    warmup_ratio = config["training"].get("warmup_ratio", 0.1)
+    warmup_steps = int(total_steps * warmup_ratio)
 
     # 6. TrainingArguments
     training_args = TrainingArguments(
@@ -165,11 +192,10 @@ def main():
         metric_for_best_model=config["training"]["metric_for_best_model"],
         report_to=config["training"]["report_to"],
         run_name=config["experiment_name"],
-        # fp16 only on CUDA; BETO is incompatible with bf16 (causes NaN)
-        fp16=torch.cuda.is_available(),
-        bf16=False,
-        logging_steps=50,
-        warmup_ratio=config["training"].get("warmup_ratio", 0.1),
+        logging_steps=10,
+        fp16=(config["training"].get("precision", "fp16") == "fp16" and torch.cuda.is_available()),
+        max_grad_norm=config["training"].get("max_grad_norm", 1.0),
+        warmup_steps=warmup_steps,
         weight_decay=config["training"].get("weight_decay", 0.01),
     )
 
@@ -201,7 +227,7 @@ def main():
     print(f"Optimized Macro-F1: {optimized_f1:.4f}")
 
     # 11. Save
-    save_dir = os.path.join(config["training"]["output_dir"], "final_model")
+    save_dir = os.path.join(config["training"]["output_dir"], f"final_model_{config['experiment_name']}")
     trainer.save_model(save_dir)
     with open(os.path.join(save_dir, "optimal_thresholds.json"), "w") as f:
         json.dump(

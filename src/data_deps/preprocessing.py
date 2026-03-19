@@ -21,3 +21,31 @@ def prepare_dataset(df: pd.DataFrame, model_name: str, max_length: int = 128) ->
     # Ensure correct columns are kept for PyTorch
     tokenized_dataset.set_format(type='torch', columns=['input_ids', 'attention_mask', 'labels'])
     return tokenized_dataset
+
+def clean_dataframe(df: pd.DataFrame, label_cols: list) -> pd.DataFrame:
+    """
+    Cleans raw DataFrame before dataset preparation.
+    1. Removes rows with NaN in label columns or text.
+    2. Drops texts shorter than 3 characters after stripping.
+    3. Merges duplicate texts by performing logical OR (max) on labels.
+    """
+    initial_len = len(df)
+    
+    # 1. Drop NaN
+    df = df.dropna(subset=label_cols + ["text"]).copy()
+    
+    # Ensure text is string (avoid errors with len)
+    df['text'] = df['text'].astype(str)
+    
+    # 2. Drop short text
+    mask_short = df['text'].str.strip().str.len() >= 3
+    df = df[mask_short]
+    
+    # 3. Merge duplicates (OR logic via max())
+    df = df.groupby('text', as_index=False)[label_cols].max()
+    
+    final_len = len(df)
+    print(f"  [Data Pipeline] Cleaned data: {initial_len} -> {final_len} rows. "
+          f"Removed/merged {initial_len - final_len} rows.")
+          
+    return df

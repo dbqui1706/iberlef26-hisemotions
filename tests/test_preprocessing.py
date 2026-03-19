@@ -30,3 +30,40 @@ def test_prepare_dataset_handles_nan():
     
     # Verify the label is still processed
     assert dataset[0]['labels'].tolist() == [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]
+
+from src.data_deps.preprocessing import clean_dataframe
+
+def test_clean_dataframe_removes_nans_and_short_texts():
+    data = {
+        'text': ["valid text here", "a", "   ", None, "another valid text"],
+        'anger': [0.0, 0.0, 0.0, 0.0, float('nan')],
+        'fear': [0.0, 0.0, 0.0, 0.0, 0.0]
+    }
+    df = pd.DataFrame(data)
+    label_cols = ['anger', 'fear']
+    
+    cleaned = clean_dataframe(df, label_cols)
+    
+    assert len(cleaned) == 1
+    assert cleaned.iloc[0]['text'] == "valid text here"
+
+def test_clean_dataframe_merges_duplicates_with_or_logic():
+    data = {
+        'text': ["duplicate text", "duplicate text", "Duplicate Text", "unique text"],
+        'anger': [1.0, 0.0, 0.0, 1.0],
+        'fear':  [0.0, 1.0, 0.0, 0.0]
+    }
+    df = pd.DataFrame(data)
+    label_cols = ['anger', 'fear']
+    
+    cleaned = clean_dataframe(df, label_cols)
+    
+    assert len(cleaned) == 3
+    # Grouped exactly (case matters unless we lower() it, but sticking to simple exact match)
+    dup_row = cleaned[cleaned['text'] == "duplicate text"].iloc[0]
+    assert dup_row['anger'] == 1.0
+    assert dup_row['fear'] == 1.0
+    
+    dup_row2 = cleaned[cleaned['text'] == "Duplicate Text"].iloc[0]
+    assert dup_row2['anger'] == 0.0
+    assert dup_row2['fear'] == 0.0
