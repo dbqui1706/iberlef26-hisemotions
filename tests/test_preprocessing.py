@@ -1,13 +1,20 @@
 import pandas as pd
 from src.data_deps.preprocessing import prepare_dataset
 
+# Hotfix for huggingface datasets format crash with new torchvision nightlies
+import torchvision.io
+if not hasattr(torchvision.io, "VideoReader"):
+    class DummyVideoReader: pass
+    torchvision.io.VideoReader = DummyVideoReader
+
 def test_prepare_dataset():
     df = pd.DataFrame({
         'fragment': ['1'],
         'text': ['texto de prueba'],
         'anger': [0], 'fear': [0], 'joy': [1], 'sadness': [0], 'surprise': [0], 'hope': [1]
     })
-    dataset = prepare_dataset(df, "PlanTL-GOB-ES/roberta-base-bne", max_length=16)
+    label_cols = ['anger', 'fear', 'joy', 'sadness', 'surprise', 'hope']
+    dataset = prepare_dataset(df, "dccuchile/bert-base-spanish-wwm-uncased", label_cols, max_length=16)
     assert 'labels' in dataset.features
     assert dataset[0]['labels'].tolist() == [0.0, 0.0, 1.0, 0.0, 0.0, 1.0]
     assert 'input_ids' in dataset.features
@@ -22,7 +29,8 @@ def test_prepare_dataset_handles_nan():
     })
     
     # Should not raise TypeError during map/tokenize
-    dataset = prepare_dataset(df, "PlanTL-GOB-ES/roberta-base-bne", max_length=16)
+    label_cols = ['anger', 'fear', 'joy', 'sadness', 'surprise', 'hope']
+    dataset = prepare_dataset(df, "dccuchile/bert-base-spanish-wwm-uncased", label_cols, max_length=16)
     
     # After preprocessing, the nan text should be converted to an empty string,
     # so input_ids should just be special tokens ([CLS], [SEP], padding)
