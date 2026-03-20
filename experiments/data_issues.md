@@ -73,13 +73,3 @@ Vì chúng ta đã điền 1 vào `neutral` cho những câu [0,0,0,0,0,0], bây
 - Phân bổ Text Length không đổi so với RAW data. Độ dài trung bình: 15-25 từ. Cấu hình `max_length = 256` token là hoàn toàn phù hợp và an toàn.
 
 ---
-
-## Kết luận & Định hướng Kỹ thuật
-
-Tập Training hiện tại đã đạt độ tin cậy kĩ thuật (không chứa file rác/NaN), sẵn sàng chắp cánh cho mô hình. 
-
-**Vấn đề cốt lõi duy nhất còn tồn tại cản trở điểm F1 Score:**
-Vấn đề 1: Lệch pha Train-Dev và Lớp Rare quá nhỏ bé (7 mẫu).
-- **Giải pháp:** Sử dụng hàm Loss Asymmetric Loss (ASL) hoặc Focal Loss để mô hình không phạt nặng lớp thiểu số. *KHÔNG Nên dùng Copy-Paste Oversampling vì dễ gây Overfitting nghiêm trọng cho 7 mẫu `surprise`.*
-
-*Charts regenerated on processed valid dataset.*
