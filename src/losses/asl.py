@@ -36,52 +36,50 @@ class AsymmetricLoss(nn.Module):
         self.clip = clip
         self.eps = eps
         self.reduction = reduction
-
+ 
     def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
         """
         Args:
-            logits:  (batch, num_labels) — raw logits BEFORE sigmoid
+            logits:  (batch, num_labels) — raw logits before sigmoid
             targets: (batch, num_labels) — float 0/1 labels
         Returns:
             scalar loss
         """
-        probs = torch.sigmoid(logits)
-
+        # --- Sigmoid ---
+        xs_pos = torch.sigmoid(logits)
+        xs_neg = 1.0 - xs_pos
+ 
         # --- Asymmetric Clip ---
-        # For negative samples: shift probability up by clip to remove easy negatives
-        # probs_neg is in [clip, 1], so log(1 - probs_neg) ≤ log(1 - clip)
+        # Shift xs_neg up by clip to completely remove easy negatives.
+        # Only applied to xs_neg (negative branch), does not affect xs_pos.
         if self.clip is not None and self.clip > 0:
-            probs_neg = (probs + self.clip).clamp(max=1.0)
-        else:
-            probs_neg = probs
-
-        # --- Cross Entropy for positive and negative ---
-        # BCE = -[y * log(p) + (1-y) * log(1-p)]
-        xs_pos = probs
-        xs_neg = 1.0 - probs_neg
-
-        loss_pos = targets       * torch.log(xs_pos.clamp(min=self.eps))
-        loss_neg = (1 - targets) * torch.log(xs_neg.clamp(min=self.eps))
-        loss = loss_pos + loss_neg  # (batch, num_labels)
-
+            xs_neg = (xs_neg + self.clip).clamp(max=1.0)
+ 
+        # --- Log CE loss ---
+        loss = (
+            targets       * torch.log(xs_pos.clamp(min=self.eps))
+            + (1 - targets) * torch.log(xs_neg.clamp(min=self.eps))
+        )
+ 
         # --- Asymmetric Focusing ---
-        # pt: "correct" probability — used to compute modulating factor
+        # Focusing weights computed under no_grad (Ridnik et al., 2021 design).
+        # Gradients flow only through log terms above, NOT through focusing weights.
+        # Allowing gradients through pow() causes 0^0 NaN and other instabilities.
         if self.gamma_neg > 0 or self.gamma_pos > 0:
-            pt_pos = probs             # p  when y=1
-            pt_neg = 1.0 - probs_neg  # 1-p when y=0
-
-            # Modulating factor per sample
-            # For y=1: (1-pt_pos)^gamma_pos
-            # For y=0: (1-pt_neg)^gamma_neg = probs_neg^gamma_neg
-            gamma_t_pos = self.gamma_pos * targets
-            gamma_t_neg = self.gamma_neg * (1 - targets)
-            pt = pt_pos * targets + pt_neg * (1 - targets)
-            gamma_t = gamma_t_pos + gamma_t_neg
-
-            loss *= torch.pow(1.0 - pt, gamma_t)
-
-        loss = -loss  # positive loss value
-
+            with torch.no_grad():
+                # pt = "correct" probability: p if y=1, (1-p_neg) if y=0
+                pt0 = xs_pos * targets            # p   when y=1, 0 when y=0
+                pt1 = xs_neg * (1.0 - targets)    # 1-p when y=0, 0 when y=1
+                pt  = pt0 + pt1
+ 
+                one_sided_gamma = self.gamma_pos * targets + self.gamma_neg * (1.0 - targets)
+                one_sided_w     = torch.pow(1.0 - pt, one_sided_gamma)
+                # no_grad → one_sided_w is constant w.r.t. backward
+ 
+            loss = loss * one_sided_w   # gradient flows through `loss` only, not `one_sided_w`
+ 
+        loss = -loss
+ 
         if self.reduction == "mean":
             return loss.mean()
         elif self.reduction == "sum":

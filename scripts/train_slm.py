@@ -30,37 +30,8 @@ from transformers import (
 from src.data_deps.preprocessing import prepare_dataset
 from src.evaluate.metrics import compute_multilabel_metrics, find_optimal_thresholds
 from src.losses.asl import AsymmetricLoss
-
-# ---------------------------------------------------------------------------
-# Trainer with ASL loss (drop-in replacement for WeightedMultiLabelTrainer)
-# ---------------------------------------------------------------------------
-
-class ASLTrainer(Trainer):
-    """
-    Trainer using Asymmetric Loss instead of BCEWithLogitsLoss.
-
-    Supported YAML config (all optional, has defaults):
-        loss:
-          type: "asl"        # "asl" | "weighted_bce"
-          gamma_neg: 4       # ASL: penalize easy negatives
-          gamma_pos: 0       # ASL: do not discount hard positives
-          clip: 0.05         # ASL: clip negative probabilities
-          max_weight: 10.0   # weighted_bce: cap pos_weight
-    """
-
-    def __init__(self, *args, loss_fn=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        # If no loss_fn provided, fallback to plain BCE
-        self.loss_fn = loss_fn if loss_fn is not None else nn.BCEWithLogitsLoss()
-
-    def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
-        labels = inputs.get("labels")
-        outputs = model(**inputs)
-        logits = outputs.get("logits")
-
-        # Ensure loss_fn runs on the correct device
-        loss = self.loss_fn(logits.to(torch.float32), labels.to(torch.float32))
-        return (loss, outputs) if return_outputs else loss
+from src.trainer import HisemotionTrainer
+import numpy as np
 
 
 # ---------------------------------------------------------------------------
@@ -73,7 +44,7 @@ def build_loss_fn(config: dict, train_df: pd.DataFrame, label_cols: list, device
     Default: ASL with gamma_neg=4, gamma_pos=0, clip=0.05
     """
     loss_cfg = config.get("loss", {})
-    loss_type = loss_cfg.get("type", "weighted_bce").lower()
+    loss_type = loss_cfg.get("type", "").lower()
 
     if loss_type == "asl":
         gamma_neg = float(loss_cfg.get("gamma_neg", 4.0))
@@ -136,19 +107,7 @@ def main():
     # 1. Load data
     train_df = pd.read_csv(config["data"]["train_path"])
     dev_df   = pd.read_csv(config["data"]["dev_path"])
-    label_cols = ["anger", "fear", "joy", "sadness", "surprise", "hope"]
-
-    # Clean data via preprocessing pipeline
-    from src.data_deps.preprocessing import clean_dataframe, round_robin_balance
-    print("\nCleaning Train Data:")
-    train_df = clean_dataframe(train_df, label_cols)
-    print("Cleaning Dev Data:")
-    dev_df   = clean_dataframe(dev_df, label_cols)
-    
-    # Optional Class Balancing
-    if config["data"].get("balance_classes") == "round_robin":
-        print("\nBalancing Train Data (Round-Robin):")
-        train_df = round_robin_balance(train_df, label_cols)
+    label_cols = ["anger", "fear", "joy", "sadness", "surprise", "hope", "neutral"]
 
     # 2. Device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -159,11 +118,11 @@ def main():
 
     # 4. Prepare datasets
     train_dataset = prepare_dataset(
-        train_df, config["model"]["name"],
+        train_df, config["model"]["name"], label_cols,
         max_length=config["model"]["max_length"]
     )
     dev_dataset = prepare_dataset(
-        dev_df, config["model"]["name"],
+        dev_df, config["model"]["name"], label_cols,
         max_length=config["model"]["max_length"]
     )
 
@@ -205,13 +164,21 @@ def main():
     )
 
     # 7. Trainer
-    trainer = ASLTrainer(
+    labels_array = None
+    sampler_cfg = config.get("data", {}).get("sampler", None)
+    if sampler_cfg is not None:
+        print("\nUsing HisemotionSampler for dynamic Class Balancing...")
+        labels_array = np.array(train_dataset["labels"])
+
+    trainer = HisemotionTrainer(
         model=model,
         args=training_args,
         train_dataset=train_dataset,
         eval_dataset=dev_dataset,
         compute_metrics=compute_multilabel_metrics,
         loss_fn=loss_fn,
+        labels_array=labels_array,
+        sampler_cfg=sampler_cfg,
     )
 
     # 8. Train
@@ -226,11 +193,15 @@ def main():
     # 10. Optimize per-class thresholds
     print("\nOptimizing per-class thresholds...")
     dev_preds = trainer.predict(dev_dataset)
-    optimal_thresholds, optimized_f1 = find_optimal_thresholds(
+    optimal_thresholds, optimized_f1, class_report, conf_matrix = find_optimal_thresholds(
         dev_preds.predictions, dev_preds.label_ids, label_cols
     )
     print(f"Optimized Macro-F1: {optimized_f1:.4f}")
-
+    print(f"Per-class report:\n{class_report}")
+    print(f"Confusion Matrix:\n")
+    for name, matrix in zip(label_cols, conf_matrix):
+        print(f"--- {name} ---")
+        print(matrix)
     # 11. Save
     save_dir = os.path.join(config["training"]["output_dir"], f"final_model_{config['experiment_name']}")
     trainer.save_model(save_dir)
@@ -240,6 +211,8 @@ def main():
                 "thresholds": optimal_thresholds,
                 "labels": label_cols,
                 "optimized_macro_f1": optimized_f1,
+                "per_class_report": class_report,
+                "confusion_matrix": conf_matrix.tolist(),
                 "loss_type": config.get("loss", {}).get("type", "asl"),
                 "experiment": config["experiment_name"],
             },
