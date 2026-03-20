@@ -1,5 +1,12 @@
 import numpy as np
-from sklearn.metrics import f1_score, precision_score, recall_score, accuracy_score
+from sklearn.metrics import (
+    f1_score, 
+    precision_score, 
+    recall_score, 
+    accuracy_score, 
+    classification_report,
+    multilabel_confusion_matrix
+)
 
 def compute_multilabel_metrics(eval_pred, threshold: float = 0.5):
     """
@@ -17,12 +24,38 @@ def compute_multilabel_metrics(eval_pred, threshold: float = 0.5):
     macro_recall = recall_score(labels, predictions, average='macro', zero_division=0)
     exact_match = accuracy_score(labels, predictions) # Exact Match Ratio
     
-    return {
+    metrics_dict = {
         'macro_f1': macro_f1,
         'macro_precision': macro_precision,
         'macro_recall': macro_recall,
         'exact_match_ratio': exact_match
     }
+
+    # Calculate per-class F1 if we want to log them without explicit names (using index)
+    # They can be mapped later, or we can just provide a standalone per-class function
+    per_class_f1 = f1_score(labels, predictions, average=None, zero_division=0)
+    for i, f1 in enumerate(per_class_f1):
+        metrics_dict[f'f1_class_{i}'] = f1
+        
+    return metrics_dict
+
+def get_per_class_report(labels, predictions, label_names):
+    """
+    Returns a dictionary of per-class F1, Precision, and Recall scores.
+    """
+    f1s = f1_score(labels, predictions, average=None, zero_division=0)
+    precs = precision_score(labels, predictions, average=None, zero_division=0)
+    recs = recall_score(labels, predictions, average=None, zero_division=0)
+    
+    report = {}
+    for i, name in enumerate(label_names):
+        report[name] = {
+            'f1': f1s[i],
+            'precision': precs[i],
+            'recall': recs[i]
+        }
+    return report
+
 
 def find_optimal_thresholds(logits, labels, label_names, search_range=None):
     """
@@ -56,4 +89,10 @@ def find_optimal_thresholds(logits, labels, label_names, search_range=None):
     for name, thresh in zip(label_names, best_thresholds):
         print(f"    {name}: {thresh}")
     
-    return best_thresholds, optimized_f1
+    # Classification Report
+    class_report = classification_report(labels, final_preds, target_names=label_names, zero_division=0, digits=4)
+    
+    # Confusion Matrix
+    conf_matrix = multilabel_confusion_matrix(labels, final_preds)
+    
+    return best_thresholds, optimized_f1, class_report, conf_matrix
