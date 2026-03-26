@@ -34,6 +34,7 @@ e.md
 docs/
 submissions/
 tests/
+experiments/
 
 # Secrets
 .env
