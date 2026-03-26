@@ -14,10 +14,6 @@ worktrees/
 # Experiment tracking
 wandb/
 
-# Docs & tests (if not needed in repo)
-docs/
-tests/
-
 # Model checkpoints (large files)
 models/
 
@@ -27,3 +23,12 @@ models/
 # IDE
 .vscode/
 .idea/
+
+# Temporary / scratch
+tmp/
+tmp_*/
+e.md
+*.html
+
+# Secrets
+.env

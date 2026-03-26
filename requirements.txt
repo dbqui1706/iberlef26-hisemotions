@@ -1,16 +1,29 @@
+# Core ML
 torch
+torchvision
 transformers
 datasets
-evaluate
-wandb
-scikit-learn
-pandas
-jupyter
-matplotlib
-seaborn
 accelerate
 sentencepiece
 protobuf
-tiktoken
-torch 
-torchvision
+
+# Experiment tracking
+wandb
+
+# Data & evaluation
+scikit-learn
+pandas
+numpy
+
+# Visualization
+matplotlib
+seaborn
+jupyter
+
+# Utilities
+python-dotenv
+pyyaml
+
+# Data augmentation (optional)
+# nlpaug
+# deep-translator
