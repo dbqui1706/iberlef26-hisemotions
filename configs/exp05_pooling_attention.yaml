@@ -1,0 +1,33 @@
+# Exp05: Attention Pooling + Weighted BCE + Sampler
+experiment_name: "exp05_pooling_attention"
+pooling_type: "attention"
+dropout: 0.1
+
+model:
+  name: "dccuchile/bert-base-spanish-wwm-uncased"
+  max_length: 256
+
+data:
+  train_path: "data/processed/train.csv"
+  dev_path: "data/processed/dev.csv"
+  sampler:
+    rare_threshold: 300
+    rare_slots: 5
+    max_repeat: 10
+    seed: 42
+
+loss:
+  type: "weighted_bce"
+  max_weight: 5.0
+
+report_to: "wandb"
+
+training:
+  output_dir: "models"
+  learning_rate: 1.0e-5
+  per_device_train_batch_size: 16
+  per_device_eval_batch_size: 8
+  num_train_epochs: 20
+  warmup_ratio: 0.1
+  weight_decay: 0.01
+  max_grad_norm: 1.0

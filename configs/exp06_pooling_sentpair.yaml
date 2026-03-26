@@ -1,0 +1,22 @@
+# Exp06: Sentence-Pair NLI-style classification
+experiment_name: "exp06_pooling_sentpair"
+pooling_type: "sentpair"
+
+model:
+  name: "dccuchile/bert-base-spanish-wwm-uncased"
+  max_length: 128  # shorter since sentence_B is just 1 word
+
+data:
+  train_path: "data/processed/train.csv"
+  dev_path: "data/processed/dev.csv"
+
+report_to: "wandb"
+
+training:
+  output_dir: "models"
+  learning_rate: 2.0e-5
+  per_device_train_batch_size: 32
+  per_device_eval_batch_size: 32
+  num_train_epochs: 5
+  warmup_ratio: 0.1
+  weight_decay: 0.01

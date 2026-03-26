@@ -1,0 +1,31 @@
+# Exp01: BETO + Weighted BCE baseline (no sampler)
+experiment_name: "exp01_beto_wbce_baseline"
+model:
+  name: "dccuchile/bert-base-spanish-wwm-uncased"
+  max_length: 128
+
+data:
+  train_path: "data/processed/train.csv"
+  dev_path: "data/processed/dev.csv"
+
+loss:
+  type: "weighted_bce"
+  max_weight: 10.0
+
+report_to: "wandb"
+
+training:
+  output_dir: "models"
+  learning_rate: 2.0e-5
+  per_device_train_batch_size: 16
+  per_device_eval_batch_size: 4
+  num_train_epochs: 10
+  eval_strategy: "epoch"
+  save_strategy: "epoch"
+  load_best_model_at_end: true
+  save_total_limit: 1
+  metric_for_best_model: "macro_f1"
+  warmup_ratio: 0.1
+  weight_decay: 0.01
+  precision: "fp32"
+  max_grad_norm: 1.0

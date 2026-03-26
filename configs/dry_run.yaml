@@ -1,12 +1,15 @@
+# Dry run — quick test that the pipeline works
 experiment_name: "dry_run_test"
 model:
-  name: "xlm-roberta-base"
+  name: "dccuchile/bert-base-spanish-wwm-uncased"
   max_length: 64
+
 data:
-  train_path: "data/raw/train.csv"
-  dev_path: "data/raw/dev.csv"
+  train_path: "data/processed/train.csv"
+  dev_path: "data/processed/dev.csv"
+
 training:
-  output_dir: "models/dry_run"
+  output_dir: "models"
   learning_rate: 2.0e-5
   per_device_train_batch_size: 4
   per_device_eval_batch_size: 4
@@ -15,4 +18,4 @@ training:
   save_strategy: "no"
   load_best_model_at_end: false
   metric_for_best_model: "macro_f1"
-  report_to: "none" # disable wandb for dry run
+  report_to: "none"

@@ -1,0 +1,36 @@
+# Exp02: BETO + Weighted BCE + HisemotionSampler (rare class balancing)
+experiment_name: "exp02_beto_wbce_sampler"
+model:
+  name: "dccuchile/bert-base-spanish-wwm-uncased"
+  max_length: 256
+
+data:
+  train_path: "data/processed/train.csv"
+  dev_path: "data/processed/dev.csv"
+  sampler:
+    rare_threshold: 300
+    rare_slots: 5
+    max_repeat: 5
+    seed: 42
+
+loss:
+  type: "weighted_bce"
+  max_weight: 5.0
+
+report_to: "wandb"
+
+training:
+  output_dir: "models"
+  learning_rate: 1.0e-5
+  per_device_train_batch_size: 16
+  per_device_eval_batch_size: 4
+  num_train_epochs: 20
+  eval_strategy: "epoch"
+  save_strategy: "epoch"
+  load_best_model_at_end: true
+  save_total_limit: 1
+  metric_for_best_model: "macro_f1"
+  warmup_ratio: 0.1
+  weight_decay: 0.01
+  precision: "fp32"
+  max_grad_norm: 1.0
