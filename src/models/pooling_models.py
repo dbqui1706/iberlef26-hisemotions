@@ -42,43 +42,70 @@ class MeanPoolingClassifier(nn.Module):
 
 
 class AttentionPoolingClassifier(nn.Module):
-    """BERT + CLS & Mean Pooling Concatenation + Multi-label classifier.
+    """BERT + Multi-head Attention Pooling + Multi-label classifier.
 
-    Combines two complementary representations:
-    - [CLS] token: global sentence-level summary (what BERT was trained to encode)
-    - Mean pool: token-level average (local/compositional information)
+    Architecture:
+    1. Run BERT → hidden states (B, seq, 768)
+    2. Use [CLS] as query, all tokens as key/value → MHA → attended vector (B, 768)
+    3. Residual: attended + mean_pool → richer representation
+    4. LayerNorm → 2-layer MLP → logits
 
-    Concatenated → 1536-dim → 2-layer MLP → logits.
-    This is typically more stable and richer than single-head attention pooling.
+    Why better than single-head / CLS+Mean concat:
+    - [CLS] query learns WHICH tokens are emotion-relevant (task-specific)
+    - Multi-head allows attending to multiple aspects simultaneously (8 heads)
+    - Residual mean_pool acts as a safety net: if attention underfits, mean keeps signal
+    - LayerNorm stabilizes training
     """
 
-    def __init__(self, model_name: str, num_labels: int = 7, dropout: float = 0.1):
+    def __init__(self, model_name: str, num_labels: int = 7, dropout: float = 0.1,
+                 num_heads: int = 8):
         super().__init__()
         self.bert = AutoModel.from_pretrained(model_name)
         hidden_size = self.bert.config.hidden_size  # 768
+        assert hidden_size % num_heads == 0, "hidden_size must be divisible by num_heads"
+
+        self.mha = nn.MultiheadAttention(
+            embed_dim=hidden_size,
+            num_heads=num_heads,
+            dropout=dropout,
+            batch_first=True,
+        )
+        self.layer_norm = nn.LayerNorm(hidden_size)
         self.dropout = nn.Dropout(dropout)
-        # Input: [CLS (768) || Mean (768)] = 1536
         self.classifier = nn.Sequential(
-            nn.Linear(hidden_size * 2, hidden_size),
+            nn.Linear(hidden_size, hidden_size // 2),
             nn.GELU(),
             nn.Dropout(dropout),
-            nn.Linear(hidden_size, num_labels),
+            nn.Linear(hidden_size // 2, num_labels),
         )
         self.num_labels = num_labels
 
     def mean_pool(self, last_hidden_state, attention_mask):
         """Average hidden states, ignoring padding tokens."""
-        mask = attention_mask.unsqueeze(-1).float()       # (B, seq_len, 1)
-        summed = (last_hidden_state * mask).sum(dim=1)    # (B, hidden)
-        counts = mask.sum(dim=1).clamp(min=1e-9)          # (B, 1)
-        return summed / counts                            # (B, hidden)
+        mask = attention_mask.unsqueeze(-1).float()
+        summed = (last_hidden_state * mask).sum(dim=1)
+        counts = mask.sum(dim=1).clamp(min=1e-9)
+        return summed / counts  # (B, hidden)
 
     def forward(self, input_ids, attention_mask, labels=None, **kwargs):
         outputs = self.bert(input_ids=input_ids, attention_mask=attention_mask)
-        h = outputs.last_hidden_state                          # (B, seq, 768)
-        cls_out = h[:, 0, :]                                   # (B, 768)
-        mean_out = self.mean_pool(h, attention_mask)           # (B, 768)
-        combined = torch.cat([cls_out, mean_out], dim=-1)      # (B, 1536)
-        combined = self.dropout(combined)
-        logits = self.classifier(combined)
+        h = outputs.last_hidden_state                           # (B, seq, 768)
+        cls = h[:, :1, :]                                       # (B, 1, 768) — query
+        key_padding_mask = (attention_mask == 0)                # True = ignore padding
+
+        # MHA: [CLS] attends over all tokens
+        attended, _ = self.mha(
+            query=cls,
+            key=h,
+            value=h,
+            key_padding_mask=key_padding_mask,
+        )
+        attended = attended.squeeze(1)                          # (B, 768)
+
+        # Residual: add mean pool for stability
+        mean_out = self.mean_pool(h, attention_mask)            # (B, 768)
+        pooled = self.layer_norm(attended + mean_out)           # (B, 768)
+
+        logits = self.classifier(self.dropout(pooled))
         return {"logits": logits, "loss": torch.tensor(0.0, device=logits.device)}
+
