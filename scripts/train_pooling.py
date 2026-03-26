@@ -179,15 +179,19 @@ def train_custom_pooling(config, pooling_type, exp_model_dir):
     print("\nEvaluating (threshold = 0.5)...")
     eval_results = trainer.evaluate()
     macro_f1_default = eval_results.get("eval_macro_f1", 0.0)
-    print(f"Default Macro-F1: {macro_f1_default:.4f}")
+    macro_f1_6class_default = eval_results.get("eval_macro_f1_6class", 0.0)
+    print(f"Default Macro-F1 (7-class): {macro_f1_default:.4f}")
+    print(f"Default Macro-F1 (6-class, competition): {macro_f1_6class_default:.4f}")
 
-    # Optimize thresholds
-    print("\nOptimizing per-class thresholds...")
+    # Optimize thresholds (6-class competition metric)
+    print("\nOptimizing per-class thresholds (6-class competition metric)...")
+    EVAL_INDICES = list(range(6))
     preds = trainer.predict(dev_ds)
     opt_thresh, opt_f1, report, conf = find_optimal_thresholds(
-        preds.predictions, preds.label_ids, LABEL_COLS
+        preds.predictions, preds.label_ids, LABEL_COLS,
+        eval_class_indices=EVAL_INDICES,
     )
-    print(f"  Optimized Macro-F1: {opt_f1:.4f}")
+    print(f"  Optimized Macro-F1 (6-class, competition): {opt_f1:.4f}")
     print(f"  Thresholds: {dict(zip(LABEL_COLS, opt_thresh))}")
 
     # Save model
@@ -202,7 +206,7 @@ def train_custom_pooling(config, pooling_type, exp_model_dir):
         }, f, indent=2)
     print(f"  Saved to: {final_dir}")
 
-    return macro_f1_default, opt_f1, opt_thresh, report
+    return macro_f1_default, macro_f1_6class_default, opt_f1, opt_thresh, report
 
 
 # ===========================================================================
@@ -325,7 +329,7 @@ def train_sentpair(config, exp_model_dir):
         }, f, indent=2)
     print(f"  Saved to: {final_dir}")
 
-    return macro_f1_default, macro_f1, list(thresholds_dict.values()), report
+    return macro_f1_default, 0.0, macro_f1, list(thresholds_dict.values()), report
 
 
 # ===========================================================================
@@ -355,9 +359,9 @@ def main():
     print(f"Save to:    {exp_model_dir}\n")
 
     if pooling_type in ("mean", "attention"):
-        f1_default, f1_opt, thresholds, report = train_custom_pooling(config, pooling_type, exp_model_dir)
+        f1_default, f1_6class_default, f1_opt, thresholds, report = train_custom_pooling(config, pooling_type, exp_model_dir)
     elif pooling_type == "sentpair":
-        f1_default, f1_opt, thresholds, report = train_sentpair(config, exp_model_dir)
+        f1_default, f1_6class_default, f1_opt, thresholds, report = train_sentpair(config, exp_model_dir)
     else:
         raise ValueError(f"Unknown pooling_type: {pooling_type}")
 
@@ -371,6 +375,8 @@ def main():
         per_class_report=report,
         label_cols=LABEL_COLS,
         save_dir=os.path.join(exp_model_dir, "final"),
+        macro_f1_6class_default=f1_6class_default,
+        macro_f1_6class_optimized=f1_opt,
     )
 
     print(f"\n{'='*60}")

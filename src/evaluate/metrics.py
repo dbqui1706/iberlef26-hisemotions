@@ -19,13 +19,24 @@ def compute_multilabel_metrics(eval_pred, threshold: float = 0.5):
     probs = 1 / (1 + np.exp(-logits))
     predictions = (probs >= threshold).astype(int)
     
+    # 7-class metrics (all labels including neutral)
     macro_f1 = f1_score(labels, predictions, average='macro', zero_division=0)
     macro_precision = precision_score(labels, predictions, average='macro', zero_division=0)
     macro_recall = recall_score(labels, predictions, average='macro', zero_division=0)
     exact_match = accuracy_score(labels, predictions) # Exact Match Ratio
     
+    # 6-class competition metric (excluding neutral = index 6)
+    n_classes = labels.shape[1]
+    if n_classes >= 7:
+        labels_6 = labels[:, :6]
+        preds_6 = predictions[:, :6]
+        macro_f1_6class = f1_score(labels_6, preds_6, average='macro', zero_division=0)
+    else:
+        macro_f1_6class = macro_f1  # fallback if only 6 classes
+    
     metrics_dict = {
         'macro_f1': macro_f1,
+        'macro_f1_6class': macro_f1_6class,
         'macro_precision': macro_precision,
         'macro_recall': macro_recall,
         'exact_match_ratio': exact_match

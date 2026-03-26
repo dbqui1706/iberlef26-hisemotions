@@ -15,6 +15,8 @@ def log_experiment(
     per_class_report: str,
     label_cols: list,
     save_dir: str,
+    macro_f1_6class_default: float = 0.0,
+    macro_f1_6class_optimized: float = 0.0,
     extra: dict = None,
 ):
     """Save experiment results to experiments/{experiment_name}.json"""
@@ -37,6 +39,8 @@ def log_experiment(
         "results": {
             "macro_f1_default": round(macro_f1_default, 4),
             "macro_f1_optimized": round(macro_f1_optimized, 4),
+            "macro_f1_6class_default": round(macro_f1_6class_default, 4),
+            "macro_f1_6class_optimized": round(macro_f1_6class_optimized, 4),
             "thresholds": dict(zip(label_cols, thresholds)),
         },
         "per_class_report": per_class_report,

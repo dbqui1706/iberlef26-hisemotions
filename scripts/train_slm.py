@@ -201,15 +201,19 @@ def main():
     print("\nEvaluating (threshold = 0.5)...")
     eval_results = trainer.evaluate()
     macro_f1_default = eval_results.get("eval_macro_f1", 0.0)
-    print(f"Default Macro-F1: {macro_f1_default:.4f}")
+    macro_f1_6class_default = eval_results.get("eval_macro_f1_6class", 0.0)
+    print(f"Default Macro-F1 (7-class): {macro_f1_default:.4f}")
+    print(f"Default Macro-F1 (6-class, competition): {macro_f1_6class_default:.4f}")
 
-    # 10. Optimize per-class thresholds
-    print("\nOptimizing per-class thresholds...")
+    # 10. Optimize per-class thresholds (6-class competition metric)
+    print("\nOptimizing per-class thresholds (6-class competition metric)...")
+    EVAL_INDICES = list(range(6))  # anger..hope, excluding neutral
     dev_preds = trainer.predict(dev_dataset)
     optimal_thresholds, optimized_f1, class_report, conf_matrix = find_optimal_thresholds(
-        dev_preds.predictions, dev_preds.label_ids, LABEL_COLS
+        dev_preds.predictions, dev_preds.label_ids, LABEL_COLS,
+        eval_class_indices=EVAL_INDICES,
     )
-    print(f"Optimized Macro-F1: {optimized_f1:.4f}")
+    print(f"Optimized Macro-F1 (6-class, competition): {optimized_f1:.4f}")
     print(f"Per-class report:\n{class_report}")
 
     # 11. Save final model
@@ -236,6 +240,8 @@ def main():
         per_class_report=class_report,
         label_cols=LABEL_COLS,
         save_dir=final_dir,
+        macro_f1_6class_default=macro_f1_6class_default,
+        macro_f1_6class_optimized=optimized_f1,
     )
 
     print(f"\n{'='*60}")
