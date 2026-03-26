@@ -1,7 +1,20 @@
+"""
+Train SLM (Small Language Model) for HISEMOTIONS multi-label classification.
+
+Uses AutoModelForSequenceClassification with config-driven loss and sampler.
+
+Usage:
+    python scripts/train_slm.py --config configs/exp01_beto_wbce_baseline.yaml
+"""
 import argparse
 import yaml
 import os
 import sys
+import shutil
+
+# Load .env (HF_TOKEN, etc.)
+from dotenv import load_dotenv
+load_dotenv()
 
 # Fix nightly torchvision compatibility
 try:
@@ -24,14 +37,17 @@ import torch
 from torch import nn
 from transformers import (
     AutoModelForSequenceClassification,
-    Trainer,
     TrainingArguments,
 )
 from src.data_deps.preprocessing import prepare_dataset
 from src.evaluate.metrics import compute_multilabel_metrics, find_optimal_thresholds
 from src.losses.asl import AsymmetricLoss
 from src.trainer import HisemotionTrainer
+from src.experiment_logger import log_experiment
 import numpy as np
+
+
+LABEL_COLS = ["anger", "fear", "joy", "sadness", "surprise", "hope", "neutral"]
 
 
 # ---------------------------------------------------------------------------
@@ -39,10 +55,6 @@ import numpy as np
 # ---------------------------------------------------------------------------
 
 def build_loss_fn(config: dict, train_df: pd.DataFrame, label_cols: list, device: torch.device):
-    """
-    Read config['loss'] and return the appropriate loss function.
-    Default: ASL with gamma_neg=4, gamma_pos=0, clip=0.05
-    """
     loss_cfg = config.get("loss", {})
     loss_type = loss_cfg.get("type", "").lower()
 
@@ -60,7 +72,7 @@ def build_loss_fn(config: dict, train_df: pd.DataFrame, label_cols: list, device
         return nn.BCEWithLogitsLoss(pos_weight=weights)
 
     else:
-        print(f"  Loss: BCEWithLogitsLoss (fallback — unknown type '{loss_type}')")
+        print(f"  Loss: BCEWithLogitsLoss (default)")
         return nn.BCEWithLogitsLoss()
 
 
@@ -85,85 +97,85 @@ def main():
     with open(args.config, "r") as f:
         config = yaml.safe_load(f)
 
+    exp_name = config["experiment_name"]
+
+    # ── Directory structure: models/{exp_name}/ ──────────────────────────
+    exp_model_dir = os.path.join("models", exp_name)
+    checkpoint_dir = os.path.join(exp_model_dir, "checkpoints")
+    final_dir = os.path.join(exp_model_dir, "final")
+    os.makedirs(checkpoint_dir, exist_ok=True)
+    os.makedirs(final_dir, exist_ok=True)
+
+    # Copy config for reproducibility
+    shutil.copy2(args.config, os.path.join(exp_model_dir, "config.yaml"))
+
     print(f"\n{'='*60}")
-    print(f"Experiment : {config['experiment_name']}")
+    print(f"Experiment : {exp_name}")
     print(f"Model      : {config['model']['name']}")
+    print(f"Save to    : {exp_model_dir}")
     print(f"{'='*60}\n")
 
-    # Initialize wandb if available and configured
-    if config["training"].get("report_to") == "wandb":
+    # Initialize wandb if configured
+    report_to = config.get("report_to", config.get("training", {}).get("report_to", "none"))
+    if report_to == "wandb":
         try:
             import wandb
-            wandb.init(
-                project="hisemotions_2026",
-                name=config["experiment_name"],
-                config=config,
-                reinit=True,
-            )
+            wandb.init(project="hisemotions_2026", name=exp_name, config=config, reinit=True)
         except ImportError:
-            print("Warning: wandb not installed, disabling wandb reporting")
-            config["training"]["report_to"] = "none"
+            print("Warning: wandb not installed, disabling")
+            report_to = "none"
 
     # 1. Load data
     train_df = pd.read_csv(config["data"]["train_path"])
     dev_df   = pd.read_csv(config["data"]["dev_path"])
-    label_cols = ["anger", "fear", "joy", "sadness", "surprise", "hope", "neutral"]
 
     # 2. Device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Device: {device}\n")
 
     # 3. Loss function
-    loss_fn = build_loss_fn(config, train_df, label_cols, device)
+    loss_fn = build_loss_fn(config, train_df, LABEL_COLS, device)
 
     # 4. Prepare datasets
-    train_dataset = prepare_dataset(
-        train_df, config["model"]["name"], label_cols,
-        max_length=config["model"]["max_length"]
-    )
-    dev_dataset = prepare_dataset(
-        dev_df, config["model"]["name"], label_cols,
-        max_length=config["model"]["max_length"]
-    )
+    train_dataset = prepare_dataset(train_df, config["model"]["name"], LABEL_COLS, max_length=config["model"]["max_length"])
+    dev_dataset = prepare_dataset(dev_df, config["model"]["name"], LABEL_COLS, max_length=config["model"]["max_length"])
 
     # 5. Load model
     model = AutoModelForSequenceClassification.from_pretrained(
         config["model"]["name"],
-        num_labels=len(label_cols),
+        num_labels=len(LABEL_COLS),
         problem_type="multi_label_classification",
-        ignore_mismatched_sizes=True,   # avoid classifier head size mismatch errors
+        ignore_mismatched_sizes=True,
     )
-
     model.to(device)
 
-    # warmup steps 
-    total_steps = (len(train_dataset) // config["training"]["per_device_train_batch_size"]) \
-                  * config["training"]["num_train_epochs"]
-    warmup_ratio = config["training"].get("warmup_ratio", 0.1)
+    # 6. Training args
+    t_cfg = config["training"]
+    total_steps = (len(train_dataset) // t_cfg["per_device_train_batch_size"]) * t_cfg["num_train_epochs"]
+    warmup_ratio = t_cfg.get("warmup_ratio", 0.1)
     warmup_steps = int(total_steps * warmup_ratio)
 
-    # 6. TrainingArguments
     training_args = TrainingArguments(
-        output_dir=config["training"]["output_dir"],
-        learning_rate=float(config["training"]["learning_rate"]),
-        per_device_train_batch_size=config["training"]["per_device_train_batch_size"],
-        per_device_eval_batch_size=config["training"]["per_device_eval_batch_size"],
-        num_train_epochs=config["training"]["num_train_epochs"],
-        eval_strategy=config["training"]["eval_strategy"],
-        save_strategy=config["training"]["save_strategy"],
-        load_best_model_at_end=config["training"]["load_best_model_at_end"],
-        save_total_limit=config["training"].get("save_total_limit", 2),
-        metric_for_best_model=config["training"]["metric_for_best_model"],
-        report_to=config["training"]["report_to"],
-        run_name=config["experiment_name"],
+        output_dir=checkpoint_dir,
+        learning_rate=float(t_cfg["learning_rate"]),
+        per_device_train_batch_size=t_cfg["per_device_train_batch_size"],
+        per_device_eval_batch_size=t_cfg["per_device_eval_batch_size"],
+        num_train_epochs=t_cfg["num_train_epochs"],
+        eval_strategy=t_cfg.get("eval_strategy", "epoch"),
+        save_strategy=t_cfg.get("save_strategy", "epoch"),
+        load_best_model_at_end=t_cfg.get("load_best_model_at_end", True),
+        save_total_limit=t_cfg.get("save_total_limit", 1),
+        metric_for_best_model=t_cfg.get("metric_for_best_model", "macro_f1"),
+        report_to=report_to,
+        run_name=exp_name,
         logging_steps=10,
-        fp16=(config["training"].get("precision", "fp16") == "fp16" and torch.cuda.is_available()),
-        max_grad_norm=config["training"].get("max_grad_norm", 1.0),
+        fp16=(t_cfg.get("precision", "fp32") == "fp16" and torch.cuda.is_available()),
+        max_grad_norm=t_cfg.get("max_grad_norm", 1.0),
         warmup_steps=warmup_steps,
-        weight_decay=config["training"].get("weight_decay", 0.01),
+        weight_decay=t_cfg.get("weight_decay", 0.01),
     )
 
-    # 7. Trainer
+    # 7. Sampler
     labels_array = None
     sampler_cfg = config.get("data", {}).get("sampler", None)
     if sampler_cfg is not None:
@@ -188,37 +200,51 @@ def main():
     # 9. Eval default threshold
     print("\nEvaluating (threshold = 0.5)...")
     eval_results = trainer.evaluate()
-    print(f"Results: {eval_results}")
+    macro_f1_default = eval_results.get("eval_macro_f1", 0.0)
+    print(f"Default Macro-F1: {macro_f1_default:.4f}")
 
     # 10. Optimize per-class thresholds
     print("\nOptimizing per-class thresholds...")
     dev_preds = trainer.predict(dev_dataset)
     optimal_thresholds, optimized_f1, class_report, conf_matrix = find_optimal_thresholds(
-        dev_preds.predictions, dev_preds.label_ids, label_cols
+        dev_preds.predictions, dev_preds.label_ids, LABEL_COLS
     )
     print(f"Optimized Macro-F1: {optimized_f1:.4f}")
     print(f"Per-class report:\n{class_report}")
-    print(f"Confusion Matrix:\n")
-    for name, matrix in zip(label_cols, conf_matrix):
-        print(f"--- {name} ---")
-        print(matrix)
-    # 11. Save
-    save_dir = os.path.join(config["training"]["output_dir"], f"final_model_{config['experiment_name']}")
-    trainer.save_model(save_dir)
-    with open(os.path.join(save_dir, "optimal_thresholds.json"), "w") as f:
-        json.dump(
-            {
-                "thresholds": optimal_thresholds,
-                "labels": label_cols,
-                "optimized_macro_f1": optimized_f1,
-                "per_class_report": class_report,
-                "confusion_matrix": conf_matrix.tolist(),
-                "loss_type": config.get("loss", {}).get("type", "asl"),
-                "experiment": config["experiment_name"],
-            },
-            f, indent=2,
-        )
-    print(f"\nSaved to: {save_dir}")
+
+    # 11. Save final model
+    trainer.save_model(final_dir)
+    with open(os.path.join(final_dir, "optimal_thresholds.json"), "w") as f:
+        json.dump({
+            "thresholds": optimal_thresholds,
+            "labels": LABEL_COLS,
+            "optimized_macro_f1": optimized_f1,
+            "per_class_report": class_report,
+            "confusion_matrix": conf_matrix.tolist(),
+            "loss_type": config.get("loss", {}).get("type", "bce"),
+            "experiment": exp_name,
+        }, f, indent=2)
+    print(f"\nModel saved to: {final_dir}")
+
+    # 12. Log experiment
+    log_experiment(
+        experiment_name=exp_name,
+        config=config,
+        macro_f1_default=macro_f1_default,
+        macro_f1_optimized=optimized_f1,
+        thresholds=optimal_thresholds,
+        per_class_report=class_report,
+        label_cols=LABEL_COLS,
+        save_dir=final_dir,
+    )
+
+    print(f"\n{'='*60}")
+    print(f"  DONE: {exp_name}")
+    print(f"  Default  Macro-F1: {macro_f1_default:.4f}")
+    print(f"  Optimized Macro-F1: {optimized_f1:.4f}")
+    print(f"  Model: {final_dir}")
+    print(f"  Log:   experiments/{exp_name}.json")
+    print(f"{'='*60}")
 
 
 if __name__ == "__main__":
