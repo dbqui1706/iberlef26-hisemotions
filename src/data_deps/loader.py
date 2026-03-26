@@ -35,12 +35,14 @@ class HisemotionSampler(Sampler):
     def _build_pools(self):
         self.pools: Dict[str, List[int]] = {}
         self.raw_sizes: Dict[str, int]   = {}
-        for i, label in enumerate(LABEL_COLS):
+        n_cols = self.labels_array.shape[1]
+        self.label_names = LABEL_COLS[:n_cols]  # Support 6 or 7 columns
+        for i, label in enumerate(self.label_names):
             indices = np.where(self.labels_array[:, i] == 1)[0].tolist()
             self.pools[label]     = indices
             self.raw_sizes[label] = len(indices)
-        self.rare_labels   = [l for l in LABEL_COLS if self.raw_sizes[l] < self.rare_threshold]
-        self.common_labels = [l for l in LABEL_COLS if self.raw_sizes[l] >= self.rare_threshold]
+        self.rare_labels   = [l for l in self.label_names if self.raw_sizes[l] < self.rare_threshold]
+        self.common_labels = [l for l in self.label_names if self.raw_sizes[l] >= self.rare_threshold]
  
     def _compute_rounds(self):
         max_raw = max(self.raw_sizes.values())
@@ -57,7 +59,7 @@ class HisemotionSampler(Sampler):
         print(f"\n{self.__class__.__name__}  rare_threshold={self.rare_threshold}  "
               f"rare_slots={self.rare_slots}  common_slots={self.common_slots}")
         print(f"  {'Label':<12} {'Type':<8} {'Raw':>6} {'Target':>8} {'Repeat':>8}")
-        for label in LABEL_COLS:
+        for label in self.label_names:
             raw = self.raw_sizes[label]
             if label in self.rare_labels:
                 tgt = self.target_sizes[label]

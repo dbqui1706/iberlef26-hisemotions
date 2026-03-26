@@ -57,10 +57,18 @@ def get_per_class_report(labels, predictions, label_names):
     return report
 
 
-def find_optimal_thresholds(logits, labels, label_names, search_range=None):
+def find_optimal_thresholds(logits, labels, label_names, search_range=None, eval_class_indices=None):
     """
     Search per-class optimal thresholds that maximize Macro-F1.
-    Returns (list of thresholds, best macro_f1).
+    
+    Args:
+        eval_class_indices: If provided, only these class indices are used
+                          for the final macro-F1 calculation. This is useful
+                          when the competition metric excludes some classes
+                          (e.g., neutral). All classes still get optimized
+                          thresholds, but the reported F1 reflects only
+                          the eval subset.
+    Returns (list of thresholds, best macro_f1, classification_report, confusion_matrix).
     """
     if search_range is None:
         search_range = np.arange(0.1, 0.9, 0.05)
@@ -68,6 +76,10 @@ def find_optimal_thresholds(logits, labels, label_names, search_range=None):
     probs = 1 / (1 + np.exp(-logits))
     n_classes = labels.shape[1]
     best_thresholds = [0.5] * n_classes
+    
+    # If eval_class_indices not specified, use all classes
+    if eval_class_indices is None:
+        eval_class_indices = list(range(n_classes))
     
     for i in range(n_classes):
         best_f1 = 0.0
@@ -83,16 +95,20 @@ def find_optimal_thresholds(logits, labels, label_names, search_range=None):
     for i in range(n_classes):
         final_preds[:, i] = (probs[:, i] >= best_thresholds[i]).astype(int)
     
-    optimized_f1 = f1_score(labels, final_preds, average='macro', zero_division=0)
+    # Macro-F1 only on eval classes
+    eval_labels = labels[:, eval_class_indices]
+    eval_preds = final_preds[:, eval_class_indices]
+    eval_names = [label_names[i] for i in eval_class_indices]
+    optimized_f1 = f1_score(eval_labels, eval_preds, average='macro', zero_division=0)
     
     print(f"  Per-class optimal thresholds:")
     for name, thresh in zip(label_names, best_thresholds):
         print(f"    {name}: {thresh}")
     
-    # Classification Report
-    class_report = classification_report(labels, final_preds, target_names=label_names, zero_division=0, digits=4)
+    # Classification Report (eval classes only)
+    class_report = classification_report(eval_labels, eval_preds, target_names=eval_names, zero_division=0, digits=4)
     
-    # Confusion Matrix
-    conf_matrix = multilabel_confusion_matrix(labels, final_preds)
+    # Confusion Matrix (eval classes only)
+    conf_matrix = multilabel_confusion_matrix(eval_labels, eval_preds)
     
     return best_thresholds, optimized_f1, class_report, conf_matrix
