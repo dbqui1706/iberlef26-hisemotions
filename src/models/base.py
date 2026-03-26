@@ -4,10 +4,6 @@ from typing import List
 class BaseModel(ABC):
     @abstractmethod
     def predict(self, text_list: List[str]) -> List[List[int]]:
-        """
-        Returns a list of binary lists representing the 6 emotions.
-        E.g., [[0, 0, 1, 0, 0, 1], [0, 0, 0, 0, 0, 0]]
-        """
         pass
         
     @abstractmethod

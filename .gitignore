@@ -15,7 +15,7 @@ worktrees/
 wandb/
 
 # Model checkpoints (large files)
-models/
+/models/
 
 # Agent configs
 .agents/
