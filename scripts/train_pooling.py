@@ -39,6 +39,7 @@ from torch import nn
 from transformers import (
     AutoModelForSequenceClassification,
     Trainer,
+    TrainerCallback,
     TrainingArguments,
 )
 from src.data_deps.preprocessing import prepare_dataset
@@ -89,6 +90,24 @@ def build_loss_fn(config, train_df, label_cols, device):
 # ===========================================================================
 # Train Mean / Attention pooling (multi-label, 7 classes)
 # ===========================================================================
+# BestModelCallback: manually save/restore best weights for custom PyTorch models.
+# HF Trainer's load_best_model_at_end only works for PreTrainedModel, NOT for
+# custom nn.Module subclasses like MeanPoolingClassifier / AttentionPoolingClassifier.
+# ---------------------------------------------------------------------------
+class BestModelCallback(TrainerCallback):
+    """Saves model.state_dict() whenever eval macro_f1 improves."""
+    def __init__(self, model: torch.nn.Module, save_path: str):
+        self.model = model
+        self.save_path = save_path
+        self.best_f1 = -1.0
+
+    def on_evaluate(self, args, state, control, metrics=None, **kwargs):
+        f1 = metrics.get("eval_macro_f1", 0.0) if metrics else 0.0
+        if f1 > self.best_f1:
+            self.best_f1 = f1
+            torch.save(self.model.state_dict(), self.save_path)
+            print(f"  [BestModelCallback] ✓ macro_f1={f1:.4f} → saved best weights")
+
 
 def train_custom_pooling(config, pooling_type, exp_model_dir):
     print("=" * 60)
@@ -160,6 +179,9 @@ def train_custom_pooling(config, pooling_type, exp_model_dir):
     if use_fgm:
         print(f"  FGM: enabled (epsilon={fgm_epsilon})")
 
+    best_ckpt_path = os.path.join(checkpoint_dir, "best_model.pt")
+    best_model_cb = BestModelCallback(model, best_ckpt_path)
+
     trainer = HisemotionTrainer(
         model=model,
         args=training_args,
@@ -171,9 +193,17 @@ def train_custom_pooling(config, pooling_type, exp_model_dir):
         sampler_cfg=sampler_cfg,
         use_fgm=use_fgm,
         fgm_epsilon=fgm_epsilon,
+        callbacks=[best_model_cb],
     )
 
     trainer.train()
+
+    # Restore best weights
+    if os.path.exists(best_ckpt_path):
+        model.load_state_dict(torch.load(best_ckpt_path, map_location=device))
+        print(f"\n  Restored best model (macro_f1={best_model_cb.best_f1:.4f}) for eval/save")
+    else:
+        print("\n  Warning: best checkpoint not found, using final weights")
 
     # Eval default threshold
     print("\nEvaluating (threshold = 0.5)...")
