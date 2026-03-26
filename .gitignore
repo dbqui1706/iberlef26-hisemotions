@@ -33,6 +33,7 @@ e.md
 # Output directories
 docs/
 submissions/
+tests/
 
 # Secrets
 .env
